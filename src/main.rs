@@ -36,6 +36,7 @@ extern "C" fn boot() {
     let state = State { game, room: 0 };
     #[allow(static_mut_refs)]
     unsafe { STATE.set(state) }.ok().unwrap();
+    set_starting_room();
 }
 
 #[unsafe(no_mangle)]
@@ -47,4 +48,20 @@ extern "C" fn update() {
 extern "C" fn render() {
     let state = get_state();
     render_room(state);
+}
+
+fn set_starting_room() {
+    let state = get_state();
+    let Ok(avatar) = state.game.get_avatar() else {
+        return;
+    };
+    let Some(room_id) = &avatar.room_id else {
+        return;
+    };
+    for (i, room) in state.game.rooms.iter().enumerate() {
+        if &room.id == room_id {
+            state.room = i;
+            return;
+        }
+    }
 }

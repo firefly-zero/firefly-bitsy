@@ -4,6 +4,8 @@ use alloc::vec::Vec;
 use bitsy_nostd_parser as bs;
 use firefly_rust as ff;
 
+const TILES_X: i32 = 16;
+const TILES_Y: i32 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = (ff::HEIGHT - 8 * 16) / 2;
 
@@ -44,7 +46,9 @@ fn draw_tiles(state: &State) {
         let frame = &tile.animation_frames[0];
         let image = parse_image(frame);
         let image = unsafe { ff::Image::from_bytes(&image) };
-        let point = tile_point((i % 16) as u8, (i / 16) as u8);
+        let x = (i % TILES_X) as u8;
+        let y = (i / TILES_Y) as u8;
+        let point = tile_point(x, y);
         ff::draw_image(&image, point);
     }
 }

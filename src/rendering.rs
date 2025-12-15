@@ -44,7 +44,7 @@ fn draw_tiles(state: &State) {
         // if let Some(color) = tile.colour_id {
         //     let color = Color::try_from(color as usize).unwrap();
         // }
-        let frame = &tile.animation_frames[0];
+        let frame = pick_frame(&tile.animation_frames, state.frame);
         let image = parse_image(frame, false);
         let image = unsafe { ff::Image::from_bytes(&image) };
         let x = (i % TILES_X) as u8;
@@ -62,7 +62,7 @@ fn draw_items(state: &State) {
         let Some(item) = state.game.items.iter().find(|item| &item.id == id) else {
             continue;
         };
-        let frame = &item.animation_frames[0];
+        let frame = pick_frame(&item.animation_frames, state.frame);
         let image = parse_image(frame, true);
         let image = unsafe { ff::Image::from_bytes(&image) };
         let point = tile_point(pos.x, pos.y);
@@ -77,13 +77,13 @@ fn draw_sprites(state: &State) {
             continue;
         };
         if room_id == &room.id {
-            draw_sprite(sprite);
+            draw_sprite(sprite, state.frame);
         }
     }
 }
 
-fn draw_sprite(sprite: &bs::Sprite) {
-    let frame = &sprite.animation_frames[0];
+fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
+    let frame = pick_frame(&sprite.animation_frames, frame);
     let Some(pos) = &sprite.position else {
         return;
     };
@@ -128,4 +128,9 @@ fn tile_point(x: u8, y: u8) -> ff::Point {
     let x = OFFSET_X + i32::from(x) * 8;
     let y = OFFSET_Y + i32::from(y) * 8;
     ff::Point::new(x, y)
+}
+
+fn pick_frame(frames: &[bs::Image], frame: u8) -> &bs::Image {
+    let frame = usize::from(frame / 12);
+    &frames[frame % frames.len()]
 }

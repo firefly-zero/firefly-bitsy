@@ -14,6 +14,7 @@ static mut STATE: OnceCell<State> = OnceCell::new();
 struct State {
     game: bs::Game,
     room: usize,
+    frame: u8,
 }
 
 fn get_state() -> &'static mut State {
@@ -33,7 +34,11 @@ extern "C" fn boot() {
         ff::log_error(warning.as_str());
     }
     ff::log_debug(&game.name);
-    let state = State { game, room: 0 };
+    let state = State {
+        game,
+        room: 0,
+        frame: 0,
+    };
     #[allow(static_mut_refs)]
     unsafe { STATE.set(state) }.ok().unwrap();
     set_starting_room();
@@ -41,7 +46,8 @@ extern "C" fn boot() {
 
 #[unsafe(no_mangle)]
 extern "C" fn update() {
-    // ...
+    let state = get_state();
+    state.frame = (state.frame + 1) % 60;
 }
 
 #[unsafe(no_mangle)]

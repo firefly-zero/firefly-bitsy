@@ -82,9 +82,7 @@ fn draw_tiles(state: &State) {
         let frame = &tile.animation_frames[0];
         let image = parse_image(frame);
         let image = unsafe { ff::Image::from_bytes(&image) };
-        let x = OFFSET_X + (i % 16) * 8;
-        let y = OFFSET_Y + (i / 16) * 8;
-        let point = ff::Point::new(x, y);
+        let point = tile_point((i % 16) as u8, (i / 16) as u8);
         ff::draw_image(&image, point);
     }
 }
@@ -97,9 +95,7 @@ fn draw_avatar(state: &State) {
     };
     let image = parse_image(frame);
     let image = unsafe { ff::Image::from_bytes(&image) };
-    let x = OFFSET_X + i32::from(pos.x) * 8;
-    let y = OFFSET_Y + i32::from(pos.y) * 8;
-    let point = ff::Point::new(x, y);
+    let point = tile_point(pos.x, pos.y);
     ff::draw_image(&image, point);
 }
 
@@ -131,4 +127,10 @@ fn parse_image(image: &bs::Image) -> Vec<u8> {
     }
 
     raw
+}
+
+fn tile_point(x: u8, y: u8) -> ff::Point {
+    let x = OFFSET_X + i32::from(x) * 8;
+    let y = OFFSET_Y + i32::from(y) * 8;
+    ff::Point::new(x, y)
 }

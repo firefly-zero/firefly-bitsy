@@ -3,8 +3,10 @@
 extern crate alloc;
 
 mod rendering;
+mod updating;
 
 use crate::rendering::*;
+use crate::updating::*;
 use bitsy_nostd_parser as bs;
 use core::cell::OnceCell;
 use firefly_rust as ff;
@@ -15,6 +17,7 @@ struct State {
     game: bs::Game,
     room: usize,
     frame: u8,
+    dpad: ff::DPad,
 }
 
 fn get_state() -> &'static mut State {
@@ -38,6 +41,7 @@ extern "C" fn boot() {
         game,
         room: 0,
         frame: 0,
+        dpad: ff::DPad::default(),
     };
     #[allow(static_mut_refs)]
     unsafe { STATE.set(state) }.ok().unwrap();
@@ -47,7 +51,7 @@ extern "C" fn boot() {
 #[unsafe(no_mangle)]
 extern "C" fn update() {
     let state = get_state();
-    state.frame = (state.frame + 1) % 60;
+    update_state(state);
 }
 
 #[unsafe(no_mangle)]

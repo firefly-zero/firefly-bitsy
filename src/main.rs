@@ -48,6 +48,7 @@ extern "C" fn render() {
     let state = get_state();
     set_palette(state);
     draw_tiles(state);
+    draw_avatar(state);
 }
 
 fn set_palette(state: &State) {
@@ -86,6 +87,20 @@ fn draw_tiles(state: &State) {
         let point = ff::Point::new(x, y);
         ff::draw_image(&image, point);
     }
+}
+
+fn draw_avatar(state: &State) {
+    let sprite = state.game.get_avatar().unwrap();
+    let frame = &sprite.animation_frames[0];
+    let Some(pos) = &sprite.position else {
+        return;
+    };
+    let image = parse_image(frame);
+    let image = unsafe { ff::Image::from_bytes(&image) };
+    let x = OFFSET_X + i32::from(pos.x) * 8;
+    let y = OFFSET_Y + i32::from(pos.y) * 8;
+    let point = ff::Point::new(x, y);
+    ff::draw_image(&image, point);
 }
 
 fn parse_image(image: &bs::Image) -> Vec<u8> {

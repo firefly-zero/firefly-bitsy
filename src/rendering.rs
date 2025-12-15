@@ -12,6 +12,7 @@ const OFFSET_Y: i32 = (ff::HEIGHT - 8 * 16) / 2;
 pub fn render_room(state: &State) {
     set_palette(state);
     draw_tiles(state);
+    draw_items(state);
     draw_sprites(state);
 }
 
@@ -49,6 +50,22 @@ fn draw_tiles(state: &State) {
         let x = (i % TILES_X) as u8;
         let y = (i / TILES_Y) as u8;
         let point = tile_point(x, y);
+        ff::draw_image(&image, point);
+    }
+}
+
+fn draw_items(state: &State) {
+    let room = &state.game.rooms[state.room];
+    for item in &room.items {
+        let pos = &item.position;
+        let id = &item.id;
+        let Some(item) = state.game.items.iter().find(|item| &item.id == id) else {
+            continue;
+        };
+        let frame = &item.animation_frames[0];
+        let image = parse_image(frame);
+        let image = unsafe { ff::Image::from_bytes(&image) };
+        let point = tile_point(pos.x, pos.y);
         ff::draw_image(&image, point);
     }
 }

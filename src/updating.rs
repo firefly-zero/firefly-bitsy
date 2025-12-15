@@ -35,8 +35,12 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
     let x = old_pos.x.saturating_add_signed(dx).min(TILES_X - 1);
     let y = old_pos.y.saturating_add_signed(dy).min(TILES_Y - 1);
     let new_pos = bs::Position { x, y };
+    let Some(room_id) = &avatar.room_id else {
+        return;
+    };
+    let room_id = room_id.clone();
 
-    if let Some(sprite) = get_sprite_at(state, new_pos) {
+    if let Some(sprite) = get_sprite_at(state, &room_id, new_pos) {
         return;
     }
 
@@ -53,12 +57,22 @@ fn get_avatar(state: &mut State) -> &mut bs::Sprite {
     panic!("avatar not found")
 }
 
-fn get_sprite_at(state: &mut State, pos: bs::Position) -> Option<&bs::Sprite> {
-    #[allow(clippy::manual_find)]
+fn get_sprite_at<'a>(
+    state: &'a mut State,
+    room: &str,
+    pos: bs::Position,
+) -> Option<&'a bs::Sprite> {
     for sprite in &state.game.sprites {
-        if sprite.position == Some(pos) {
-            return Some(sprite);
+        let Some(sprite_room) = sprite.room_id.as_ref() else {
+            continue;
+        };
+        if sprite_room != room {
+            continue;
         }
+        if sprite.position != Some(pos) {
+            continue;
+        }
+        return Some(sprite);
     }
     None
 }

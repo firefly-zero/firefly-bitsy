@@ -48,7 +48,7 @@ extern "C" fn render() {
     let state = get_state();
     set_palette(state);
     draw_tiles(state);
-    draw_avatar(state);
+    draw_sprites(state);
 }
 
 fn set_palette(state: &State) {
@@ -87,8 +87,19 @@ fn draw_tiles(state: &State) {
     }
 }
 
-fn draw_avatar(state: &State) {
-    let sprite = state.game.get_avatar().unwrap();
+fn draw_sprites(state: &State) {
+    let room = &state.game.rooms[state.room];
+    for sprite in &state.game.sprites {
+        let Some(room_id) = sprite.room_id.as_ref() else {
+            continue;
+        };
+        if room_id == &room.id {
+            draw_sprite(sprite);
+        }
+    }
+}
+
+fn draw_sprite(sprite: &bs::Sprite) {
     let frame = &sprite.animation_frames[0];
     let Some(pos) = &sprite.position else {
         return;

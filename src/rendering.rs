@@ -1,0 +1,109 @@
+use crate::*;
+use alloc::vec;
+use alloc::vec::Vec;
+use bitsy_nostd_parser as bs;
+use firefly_rust as ff;
+
+const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
+const OFFSET_Y: i32 = (ff::HEIGHT - 8 * 16) / 2;
+
+pub fn render_room(state: &State) {
+    set_palette(state);
+    draw_tiles(state);
+    draw_sprites(state);
+}
+
+fn set_palette(state: &State) {
+    ff::clear_screen(ff::Color::Black);
+    let room = &state.game.rooms[state.room];
+    let palette = match &room.palette_id {
+        Some(id) => id.as_str(),
+        None => "0",
+    };
+    let palette = state.game.get_palette(palette).unwrap();
+    for (color, idx) in palette.colours.iter().zip(1_usize..) {
+        let idx = ff::Color::from(idx as u8);
+        let rgb = ff::RGB {
+            r: color.red,
+            g: color.green,
+            b: color.blue,
+        };
+        ff::set_color(idx, rgb);
+    }
+}
+
+fn draw_tiles(state: &State) {
+    let room = &state.game.rooms[state.room];
+    for (tile_id, i) in room.tiles.iter().zip(0..) {
+        let Ok(tile) = &state.game.get_tile_by_id(tile_id) else {
+            continue;
+        };
+        // if let Some(color) = tile.colour_id {
+        //     let color = Color::try_from(color as usize).unwrap();
+        // }
+        let frame = &tile.animation_frames[0];
+        let image = parse_image(frame);
+        let image = unsafe { ff::Image::from_bytes(&image) };
+        let point = tile_point((i % 16) as u8, (i / 16) as u8);
+        ff::draw_image(&image, point);
+    }
+}
+
+fn draw_sprites(state: &State) {
+    let room = &state.game.rooms[state.room];
+    for sprite in &state.game.sprites {
+        let Some(room_id) = sprite.room_id.as_ref() else {
+            continue;
+        };
+        if room_id == &room.id {
+            draw_sprite(sprite);
+        }
+    }
+}
+
+fn draw_sprite(sprite: &bs::Sprite) {
+    let frame = &sprite.animation_frames[0];
+    let Some(pos) = &sprite.position else {
+        return;
+    };
+    let image = parse_image(frame);
+    let image = unsafe { ff::Image::from_bytes(&image) };
+    let point = tile_point(pos.x, pos.y);
+    ff::draw_image(&image, point);
+}
+
+fn parse_image(image: &bs::Image) -> Vec<u8> {
+    let pixels = &image.pixels;
+    let is_hd = pixels.len() == 256;
+    let width = if is_hd { 16 } else { 8 };
+    let height = width;
+
+    const HEADER_SIZE: usize = 5 + 8;
+    let body_size = width * height / 2;
+    let mut raw = vec![0; HEADER_SIZE + body_size as usize];
+
+    // Header.
+    raw[0] = 0x21; // magic number
+    raw[1] = 4; // BPP
+    raw[2] = width as u8; // width
+    raw[3] = (width >> 8) as u8; // width
+    raw[4] = 255; // transparency
+    // color swaps
+    for i in 0u8..8u8 {
+        raw[5 + i as usize] = ((i * 2) << 4) | (i * 2 + 1);
+    }
+
+    for i in 0..image.pixels.len() / 2 {
+        let p1 = image.pixels[i * 2];
+        let p2 = image.pixels[i * 2 + 1];
+        raw[HEADER_SIZE + i] = p1 << 4 | p2;
+    }
+
+    raw
+}
+
+fn tile_point(x: u8, y: u8) -> ff::Point {
+    let x = OFFSET_X + i32::from(x) * 8;
+    let y = OFFSET_Y + i32::from(y) * 8;
+    ff::Point::new(x, y)
+}

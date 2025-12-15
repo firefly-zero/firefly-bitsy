@@ -14,6 +14,7 @@ pub fn render_room(state: &State) {
     draw_tiles(state);
     draw_items(state);
     draw_sprites(state);
+    draw_avatar(state);
 }
 
 fn set_palette(state: &State) {
@@ -73,10 +74,21 @@ fn draw_items(state: &State) {
 fn draw_sprites(state: &State) {
     let room = &state.game.rooms[state.room];
     for sprite in &state.game.sprites {
+        if sprite.id == "A" {
+            continue;
+        }
         let Some(room_id) = sprite.room_id.as_ref() else {
             continue;
         };
         if room_id == &room.id {
+            draw_sprite(sprite, state.frame);
+        }
+    }
+}
+
+fn draw_avatar(state: &State) {
+    for sprite in &state.game.sprites {
+        if sprite.id == "A" {
             draw_sprite(sprite, state.frame);
         }
     }

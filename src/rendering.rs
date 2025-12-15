@@ -45,7 +45,7 @@ fn draw_tiles(state: &State) {
         //     let color = Color::try_from(color as usize).unwrap();
         // }
         let frame = &tile.animation_frames[0];
-        let image = parse_image(frame);
+        let image = parse_image(frame, false);
         let image = unsafe { ff::Image::from_bytes(&image) };
         let x = (i % TILES_X) as u8;
         let y = (i / TILES_Y) as u8;
@@ -63,7 +63,7 @@ fn draw_items(state: &State) {
             continue;
         };
         let frame = &item.animation_frames[0];
-        let image = parse_image(frame);
+        let image = parse_image(frame, true);
         let image = unsafe { ff::Image::from_bytes(&image) };
         let point = tile_point(pos.x, pos.y);
         ff::draw_image(&image, point);
@@ -87,13 +87,13 @@ fn draw_sprite(sprite: &bs::Sprite) {
     let Some(pos) = &sprite.position else {
         return;
     };
-    let image = parse_image(frame);
+    let image = parse_image(frame, true);
     let image = unsafe { ff::Image::from_bytes(&image) };
     let point = tile_point(pos.x, pos.y);
     ff::draw_image(&image, point);
 }
 
-fn parse_image(image: &bs::Image) -> Vec<u8> {
+fn parse_image(image: &bs::Image, sprite: bool) -> Vec<u8> {
     let pixels = &image.pixels;
     let is_hd = pixels.len() == 256;
     let width = if is_hd { 16 } else { 8 };
@@ -114,9 +114,10 @@ fn parse_image(image: &bs::Image) -> Vec<u8> {
         raw[5 + i as usize] = ((i * 2) << 4) | (i * 2 + 1);
     }
 
+    let mult = if sprite { 2 } else { 1 };
     for i in 0..image.pixels.len() / 2 {
-        let p1 = image.pixels[i * 2];
-        let p2 = image.pixels[i * 2 + 1];
+        let p1 = image.pixels[i * 2] * mult;
+        let p2 = image.pixels[i * 2 + 1] * mult;
         raw[HEADER_SIZE + i] = p1 << 4 | p2;
     }
 

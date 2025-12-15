@@ -64,7 +64,7 @@ fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
                 continue;
             };
             state.room = room_idx;
-            state.pos = exit.position;
+            state.pos = exit.exit.position;
             return true;
         }
     }

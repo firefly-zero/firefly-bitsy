@@ -8,6 +8,8 @@ use core::cell::OnceCell;
 use firefly_rust as ff;
 
 static mut STATE: OnceCell<State> = OnceCell::new();
+const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
+const OFFSET_Y: i32 = (ff::HEIGHT - 8 * 16) / 2;
 
 struct State {
     game: bs::Game,
@@ -49,13 +51,14 @@ extern "C" fn render() {
 }
 
 fn set_palette(state: &State) {
-    ff::clear_screen(ff::Color::White);
+    ff::clear_screen(ff::Color::Black);
     let room = &state.game.rooms[state.room];
-    let Some(palette) = &room.palette_id else {
-        return;
+    let palette = match &room.palette_id {
+        Some(id) => id.as_str(),
+        None => "0",
     };
     let palette = state.game.get_palette(palette).unwrap();
-    for (color, idx) in palette.colours.iter().zip(1usize..) {
+    for (color, idx) in palette.colours.iter().zip(1_usize..) {
         let idx = ff::Color::from(idx as u8);
         let rgb = ff::RGB {
             r: color.red,
@@ -78,8 +81,8 @@ fn draw_tiles(state: &State) {
         let frame = &tile.animation_frames[0];
         let image = parse_image(frame);
         let image = unsafe { ff::Image::from_bytes(&image) };
-        let x = (i % 16) * 8;
-        let y = (i / 16) * 8;
+        let x = OFFSET_X + (i % 16) * 8;
+        let y = OFFSET_Y + (i / 16) * 8;
         let point = ff::Point::new(x, y);
         ff::draw_image(&image, point);
     }

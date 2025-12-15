@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-firefly-rust = "0.9.3"
+bitsy-nostd-parser = { path = "/home/gram/my/bitsy-nostd-parser" }
+firefly-rust = { version = "0.9.3", features = ["alloc", "talc"] }
 
 # https://github.com/johnthagen/min-sized-rust
 [profile.release]

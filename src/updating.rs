@@ -40,7 +40,8 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
     }
 
     if let Some(sprite) = get_sprite_at(state, new_pos) {
-        // ...
+        let sprite = sprite.clone();
+        activate_sprite(state, &sprite);
         return;
     }
     if has_wall_at(state, new_pos) {
@@ -53,22 +54,34 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
 fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
     let room = &state.game.rooms[state.room];
     for exit in &room.exits {
-        if exit.position == new_pos {
-            let Some((room_idx, _)) = state
-                .game
-                .rooms
-                .iter()
-                .enumerate()
-                .find(|(_, room)| room.id == exit.exit.room_id)
-            else {
-                continue;
-            };
-            state.room = room_idx;
-            state.pos = exit.exit.position;
-            return true;
+        if exit.position != new_pos {
+            continue;
         }
+        let Some((room_idx, _)) = state
+            .game
+            .rooms
+            .iter()
+            .enumerate()
+            .find(|(_, room)| room.id == exit.exit.room_id)
+        else {
+            continue;
+        };
+        state.room = room_idx;
+        state.pos = exit.exit.position;
+        return true;
     }
     false
+}
+
+fn activate_sprite(state: &mut State, sprite: &bs::Sprite) {
+    let dialog_id = match &sprite.dialogue_id {
+        Some(id) => id,
+        None => &sprite.id,
+    };
+    let Some(dialog) = state.game.dialogues.iter().find(|d| &d.id == dialog_id) else {
+        return;
+    };
+    ff::log_debug(&dialog.contents);
 }
 
 fn get_avatar(state: &mut State) -> &mut bs::Sprite {

@@ -7,6 +7,7 @@ const TILES_Y: u8 = 16;
 pub fn update_state(state: &mut State) {
     state.frame = (state.frame + 1) % 60;
     handle_pad(state);
+    get_avatar(state).position = Some(state.pos);
 }
 
 fn handle_pad(state: &mut State) {
@@ -28,20 +29,46 @@ fn handle_pad(state: &mut State) {
 }
 
 fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
-    let avatar = get_avatar(state);
-    let Some(old_pos) = &avatar.position else {
-        return;
-    };
+    let old_pos = state.pos;
     let x = old_pos.x.saturating_add_signed(dx).min(TILES_X - 1);
     let y = old_pos.y.saturating_add_signed(dy).min(TILES_Y - 1);
     let new_pos = bs::Position { x, y };
 
-    if let Some(sprite) = get_sprite_at(state, new_pos) {
+    let left_room = leave_room(state, new_pos);
+    if left_room {
         return;
     }
 
-    let avatar = get_avatar(state);
-    avatar.position = Some(new_pos);
+    if let Some(sprite) = get_sprite_at(state, new_pos) {
+        // ...
+        return;
+    }
+    if has_wall_at(state, new_pos) {
+        return;
+    }
+
+    state.pos = new_pos;
+}
+
+fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
+    let room = &state.game.rooms[state.room];
+    for exit in &room.exits {
+        if exit.position == new_pos {
+            let Some((room_idx, _)) = state
+                .game
+                .rooms
+                .iter()
+                .enumerate()
+                .find(|(_, room)| room.id == exit.exit.room_id)
+            else {
+                continue;
+            };
+            state.room = room_idx;
+            state.pos = exit.position;
+            return true;
+        }
+    }
+    false
 }
 
 fn get_avatar(state: &mut State) -> &mut bs::Sprite {
@@ -53,9 +80,31 @@ fn get_avatar(state: &mut State) -> &mut bs::Sprite {
     panic!("avatar not found")
 }
 
-fn get_sprite_at<'a>(state: &'a mut State, pos: bs::Position) -> Option<&'a bs::Sprite> {
+fn has_wall_at(state: &mut State, pos: bs::Position) -> bool {
+    let Some(tile) = get_tile_at(state, pos) else {
+        return false;
+    };
+    if tile.wall == Some(true) {
+        return true;
+    }
+    let tile_id = tile.id.clone();
+    let room = &state.game.rooms[state.room];
+    if let Some(walls) = &room.walls {
+        for wall in walls {
+            if wall == &tile_id {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn get_sprite_at(state: &mut State, pos: bs::Position) -> Option<&bs::Sprite> {
     let room = &state.game.rooms[state.room];
     for sprite in &state.game.sprites {
+        if sprite.id == "A" {
+            continue;
+        }
         let Some(sprite_room) = sprite.room_id.as_ref() else {
             continue;
         };
@@ -70,19 +119,10 @@ fn get_sprite_at<'a>(state: &'a mut State, pos: bs::Position) -> Option<&'a bs::
     None
 }
 
-// fn get_tile_at<'a>(state: &'a mut State, room: &str, pos: bs::Position) -> Option<&'a bs::tile> {
-//     let room = &state.game.rooms[state.room];
-//     for tile in &state.game.tiles {
-//         let Some(tile_room) = tile.room_id.as_ref() else {
-//             continue;
-//         };
-//         if tile_room != room {
-//             continue;
-//         }
-//         if tile.position != Some(pos) {
-//             continue;
-//         }
-//         return Some(tile);
-//     }
-//     None
-// }
+fn get_tile_at(state: &mut State, pos: bs::Position) -> Option<&bs::Tile> {
+    let room = &state.game.rooms[state.room];
+    let idx = pos.y * TILES_X + pos.x;
+    let tile_id = &room.tiles[usize::from(idx)];
+    let tile = state.game.get_tile_by_id(tile_id);
+    tile.ok()
+}

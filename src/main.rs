@@ -16,6 +16,7 @@ static mut STATE: OnceCell<State> = OnceCell::new();
 struct State {
     game: bs::Game,
     room: usize,
+    pos: bs::Position,
     frame: u8,
     dpad: ff::DPad,
 }
@@ -41,6 +42,7 @@ extern "C" fn boot() {
         game,
         room: 0,
         frame: 0,
+        pos: bs::Position { x: 0, y: 0 },
         dpad: ff::DPad::default(),
     };
     #[allow(static_mut_refs)]
@@ -65,6 +67,9 @@ fn set_starting_room() {
     let Ok(avatar) = state.game.get_avatar() else {
         return;
     };
+    if let Some(pos) = avatar.position {
+        state.pos = pos;
+    }
     let Some(room_id) = &avatar.room_id else {
         return;
     };

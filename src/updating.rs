@@ -77,10 +77,14 @@ fn activate_sprite(state: &mut State, sprite: &bs::Sprite) {
         Some(id) => id,
         None => &sprite.id,
     };
-    let Some(dialog) = state.game.dialogues.iter().find(|d| &d.id == dialog_id) else {
+    show_dialog(state, dialog_id)
+}
+
+fn show_dialog(state: &mut State, dialog_id: &str) {
+    let Some(dialog) = state.game.dialogues.iter().find(|d| d.id == dialog_id) else {
         return;
     };
-    ff::log_debug(&dialog.contents);
+    state.dialog = Some(dialog.contents.clone());
 }
 
 fn get_avatar(state: &mut State) -> &mut bs::Sprite {

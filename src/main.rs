@@ -7,6 +7,7 @@ mod updating;
 
 use crate::rendering::*;
 use crate::updating::*;
+use alloc::string::String;
 use bitsy_nostd_parser as bs;
 use core::cell::OnceCell;
 use firefly_rust as ff;
@@ -19,6 +20,8 @@ struct State {
     pos: bs::Position,
     frame: u8,
     dpad: ff::DPad,
+    dialog: Option<String>,
+    font: ff::FileBuf,
 }
 
 fn get_state() -> &'static mut State {
@@ -37,13 +40,18 @@ extern "C" fn boot() {
     for warning in warnings {
         ff::log_error(warning.as_str());
     }
+    let Some(font) = ff::load_file_buf("font") else {
+        panic!("font not found")
+    };
     ff::log_debug(&game.name);
     let state = State {
         game,
+        font,
         room: 0,
         frame: 0,
         pos: bs::Position { x: 0, y: 0 },
         dpad: ff::DPad::default(),
+        dialog: None,
     };
     #[allow(static_mut_refs)]
     unsafe { STATE.set(state) }.ok().unwrap();

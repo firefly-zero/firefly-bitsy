@@ -5,3 +5,4 @@ app_name = "Firefly Bitsy"
 
 [files]
 main = { path = "main.bitsy.txt", copy = true }
+font = { path = "eg_6x9.fff", url = "https://fonts.fireflyzero.com/fonts/ascii/eg_6x9.fff" }

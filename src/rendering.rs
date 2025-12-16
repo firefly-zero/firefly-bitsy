@@ -7,7 +7,7 @@ use firefly_rust as ff;
 const TILES_X: i32 = 16;
 const TILES_Y: i32 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
-const OFFSET_Y: i32 = (ff::HEIGHT - 8 * 16) / 2;
+const OFFSET_Y: i32 = 0;
 
 pub fn render_room(state: &State) {
     set_palette(state);
@@ -15,6 +15,7 @@ pub fn render_room(state: &State) {
     draw_items(state);
     draw_sprites(state);
     draw_avatar(state);
+    draw_dialog(state);
 }
 
 fn set_palette(state: &State) {
@@ -103,6 +104,22 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
     let image = unsafe { ff::Image::from_bytes(&image) };
     let point = tile_point(pos.x, pos.y);
     ff::draw_image(&image, point);
+}
+
+fn draw_dialog(state: &State) {
+    let Some(dialog) = &state.dialog else {
+        return;
+    };
+
+    let point = ff::Point::new(0, OFFSET_Y + 128);
+    let size = ff::Size::new(ff::WIDTH, ff::HEIGHT - point.y);
+    let style = ff::Style::solid(ff::Color::White);
+    ff::draw_rect(point, size, style);
+
+    let font = state.font.as_font();
+    let point = ff::Point::new(point.x + 4, point.y + 10);
+    let text = &dialog;
+    ff::draw_text(text, &font, point, ff::Color::DarkGray);
 }
 
 fn parse_image(image: &bs::Image, sprite: bool) -> Vec<u8> {

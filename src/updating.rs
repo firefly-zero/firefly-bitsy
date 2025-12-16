@@ -97,20 +97,13 @@ fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
         if exit.position != new_pos {
             continue;
         }
-        let Some(room_idx) = state
-            .game
-            .rooms
-            .iter()
-            .position(|room| room.id == exit.exit.room_id)
-        else {
-            continue;
-        };
-        state.room = room_idx;
         state.pos = exit.exit.position;
+        let room_id = exit.exit.room_id.clone();
         if let Some(dialog_id) = &exit.dialogue_id {
             let dialog_id = dialog_id.clone();
             show_dialog(state, &dialog_id);
         }
+        set_room(state, &room_id);
         return true;
     }
     false
@@ -164,7 +157,25 @@ fn get_avatar(state: &mut State) -> &mut bs::Sprite {
     panic!("avatar not found")
 }
 
-fn has_wall_at(state: &mut State, pos: bs::Position) -> bool {
+pub fn set_room(state: &mut State, room_id: &str) {
+    let maybe_room = state.game.rooms.iter().position(|room| room.id == room_id);
+    let Some(room_idx) = maybe_room else {
+        return;
+    };
+    state.room = room_idx;
+
+    let room = &state.game.rooms[room_idx];
+    state.tiles.clear();
+    for (tile_id, i) in room.tiles.iter().zip(0u8..) {
+        let Some(tile) = &state.game.get_tile(tile_id) else {
+            continue;
+        };
+        let tile = (*tile).clone();
+        state.tiles.push((i, tile));
+    }
+}
+
+fn has_wall_at(state: &State, pos: bs::Position) -> bool {
     let Some(tile) = get_tile_at(state, pos) else {
         return false;
     };
@@ -203,7 +214,7 @@ fn get_sprite_at(state: &mut State, pos: bs::Position) -> Option<&bs::Sprite> {
     None
 }
 
-fn get_tile_at(state: &mut State, pos: bs::Position) -> Option<&bs::Tile> {
+fn get_tile_at(state: &State, pos: bs::Position) -> Option<&bs::Tile> {
     let room = &state.game.rooms[state.room];
     let idx = pos.y * TILES_X + pos.x;
     let tile_id = &room.tiles[usize::from(idx)];

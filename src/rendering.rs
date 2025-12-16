@@ -4,8 +4,8 @@ use alloc::vec::Vec;
 use bitsy_nostd_parser as bs;
 use firefly_rust as ff;
 
-const TILES_X: i32 = 16;
-const TILES_Y: i32 = 16;
+const TILES_X: u8 = 16;
+const TILES_Y: u8 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
 
@@ -38,19 +38,15 @@ fn set_palette(state: &State) {
 }
 
 fn draw_tiles(state: &State) {
-    let room = &state.game.rooms[state.room];
-    for (tile_id, i) in room.tiles.iter().zip(0..) {
-        let Some(tile) = &state.game.get_tile(tile_id) else {
-            continue;
-        };
+    for (i, tile) in &state.tiles {
         // if let Some(color) = tile.colour_id {
         //     let color = Color::try_from(color as usize).unwrap();
         // }
         let frame = pick_frame(&tile.animation_frames, state.frame);
         let image = parse_image(frame, false);
         let image = unsafe { ff::Image::from_bytes(&image) };
-        let x = (i % TILES_X) as u8;
-        let y = (i / TILES_Y) as u8;
+        let x = i % TILES_X;
+        let y = i / TILES_Y;
         let point = tile_point(x, y);
         ff::draw_image(&image, point);
     }

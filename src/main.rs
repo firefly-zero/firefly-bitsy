@@ -21,8 +21,12 @@ struct State {
     pos: bs::Position,
     frame: u8,
     held_for: u32,
+    /// Input on the previous frame.
     dpad: ff::DPad,
+    /// Currently active dialog.
     dialog: Vec<String>,
+    /// Tiles in the current room.
+    tiles: Vec<(u8, bs::Tile)>,
     font: ff::FileBuf,
 }
 
@@ -55,6 +59,7 @@ extern "C" fn boot() {
         pos: bs::Position { x: 0, y: 0 },
         dpad: ff::DPad::default(),
         dialog: Vec::new(),
+        tiles: Vec::new(),
     };
     #[allow(static_mut_refs)]
     unsafe { STATE.set(state) }.ok().unwrap();
@@ -84,10 +89,5 @@ fn set_starting_room() {
     let Some(room_id) = &avatar.room_id else {
         return;
     };
-    for (i, room) in state.game.rooms.iter().enumerate() {
-        if &room.id == room_id {
-            state.room = i;
-            return;
-        }
-    }
+    set_room(state, &room_id.clone());
 }

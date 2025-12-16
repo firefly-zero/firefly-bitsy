@@ -107,7 +107,7 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
 }
 
 fn draw_dialog(state: &State) {
-    const MARGIN: i32 = 4;
+    const MARGIN_X: i32 = 2;
     const FONT_WIDTH: i32 = 6;
 
     let Some(dialog) = &state.dialog else {
@@ -120,11 +120,11 @@ fn draw_dialog(state: &State) {
     ff::draw_rect(point, size, style);
 
     let font = state.font.as_font();
-    let mut point = ff::Point::new(point.x + MARGIN, point.y + 10);
+    let mut point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
     let mut line = String::new();
     for word in dialog.split_ascii_whitespace() {
         let n_chars = (word.len() + line.len()) as i32;
-        if n_chars * FONT_WIDTH > WIDTH - MARGIN * 2 {
+        if n_chars * FONT_WIDTH > WIDTH - MARGIN_X * 2 {
             ff::draw_text(&line, &font, point, ff::Color::White);
             point.y += 8;
             line.clear();

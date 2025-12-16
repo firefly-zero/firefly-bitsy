@@ -76,6 +76,10 @@ fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
         };
         state.room = room_idx;
         state.pos = exit.exit.position;
+        if let Some(dialog_id) = &exit.dialogue_id {
+            let dialog_id = dialog_id.clone();
+            show_dialog(state, &dialog_id);
+        }
         return true;
     }
     false
@@ -93,6 +97,9 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
     let Some(dialog) = state.game.dialogues.iter().find(|d| d.id == dialog_id) else {
         return;
     };
+    if dialog.contents.trim().is_empty() {
+        return;
+    }
     state.dialog = Some(dialog.contents.clone());
 }
 

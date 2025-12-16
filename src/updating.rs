@@ -17,6 +17,15 @@ fn handle_pad(state: &mut State) {
     };
     let pressed = dpad.just_pressed(&state.dpad);
     state.dpad = dpad;
+
+    if state.dialog.is_some() {
+        let any = pressed.down || pressed.right || pressed.left || pressed.up;
+        if any {
+            state.dialog = None
+        }
+        return;
+    }
+
     if pressed.left {
         move_avatar_to(state, -1, 0);
     } else if pressed.right {

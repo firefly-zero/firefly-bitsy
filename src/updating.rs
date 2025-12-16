@@ -12,24 +12,7 @@ pub fn update_state(state: &mut State) {
 }
 
 fn handle_pad(state: &mut State) {
-    let mut dpad = match ff::read_pad(ff::Peer::COMBINED) {
-        Some(pad) => pad.as_dpad(),
-        None => ff::DPad::default(),
-    };
-    let buttons = ff::read_buttons(ff::Peer::COMBINED);
-    if buttons.s {
-        dpad.down = true;
-    }
-    if buttons.e {
-        dpad.right = true;
-    }
-    if buttons.w {
-        dpad.left = true;
-    }
-    if buttons.n {
-        dpad.up = true;
-    }
-
+    let dpad = read_dpad();
     if dpad.any() {
         state.held_for += 1;
     } else {
@@ -62,6 +45,27 @@ fn handle_pad(state: &mut State) {
     } else if pressed.down {
         move_avatar_to(state, 0, 1);
     }
+}
+
+fn read_dpad() -> firefly_rust::DPad {
+    let mut dpad = match ff::read_pad(ff::Peer::COMBINED) {
+        Some(pad) => pad.as_dpad(),
+        None => ff::DPad::default(),
+    };
+    let buttons = ff::read_buttons(ff::Peer::COMBINED);
+    if buttons.s {
+        dpad.down = true;
+    }
+    if buttons.e {
+        dpad.right = true;
+    }
+    if buttons.w {
+        dpad.left = true;
+    }
+    if buttons.n {
+        dpad.up = true;
+    }
+    dpad
 }
 
 fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {

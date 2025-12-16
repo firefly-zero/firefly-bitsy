@@ -43,7 +43,11 @@ fn draw_tiles(state: &State) {
         //     let color = Color::try_from(color as usize).unwrap();
         // }
         let frame = pick_frame(&tile.animation_frames, state.frame);
-        let image = parse_image(frame, false);
+        let primary = match tile.colour_id {
+            Some(c) => c as u8,
+            None => 1,
+        };
+        let image = parse_image(frame, primary);
         let image = unsafe { ff::Image::from_bytes(&image) };
         let x = i % TILES_X;
         let y = i / TILES_Y;
@@ -61,7 +65,11 @@ fn draw_items(state: &State) {
             continue;
         };
         let frame = pick_frame(&item.animation_frames, state.frame);
-        let image = parse_image(frame, true);
+        let primary = match item.colour_id {
+            Some(c) => c as u8,
+            None => 2,
+        };
+        let image = parse_image(frame, primary);
         let image = unsafe { ff::Image::from_bytes(&image) };
         let point = tile_point(pos.x, pos.y);
         ff::draw_image(&image, point);
@@ -96,7 +104,11 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
     let Some(pos) = &sprite.position else {
         return;
     };
-    let image = parse_image(frame, true);
+    let primary = match sprite.colour_id {
+        Some(c) => c as u8,
+        None => 2,
+    };
+    let image = parse_image(frame, primary);
     let image = unsafe { ff::Image::from_bytes(&image) };
     let point = tile_point(pos.x, pos.y);
     ff::draw_image(&image, point);
@@ -134,7 +146,7 @@ fn draw_dialog_arrow() {
     );
 }
 
-fn parse_image(image: &bs::Image, sprite: bool) -> Vec<u8> {
+fn parse_image(image: &bs::Image, primary: u8) -> Vec<u8> {
     let pixels = &image.pixels;
     let is_hd = pixels.len() == 256;
     let width = if is_hd { 16 } else { 8 };
@@ -154,11 +166,9 @@ fn parse_image(image: &bs::Image, sprite: bool) -> Vec<u8> {
     for i in 0u8..8u8 {
         raw[5 + i as usize] = ((i * 2) << 4) | (i * 2 + 1);
     }
-
-    let mult = if sprite { 2 } else { 1 };
     for i in 0..image.pixels.len() / 2 {
-        let p1 = image.pixels[i * 2] * mult;
-        let p2 = image.pixels[i * 2 + 1] * mult;
+        let p1 = image.pixels[i * 2] * primary;
+        let p2 = image.pixels[i * 2 + 1] * primary;
         raw[HEADER_SIZE + i] = p1 << 4 | p2;
     }
 

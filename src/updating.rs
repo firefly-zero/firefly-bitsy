@@ -223,24 +223,19 @@ fn get_sprite_at(state: &mut State, pos: bs::Position) -> Option<&bs::Sprite> {
     None
 }
 
-fn pop_item_at(state: &mut State, pos: bs::Position) -> Option<bs::Item> {
+fn pop_item_at(state: &mut State, pos: bs::Position) -> Option<&bs::Item> {
     let idx = get_item_idx_at(state, pos)?;
-    let item = state.game.items.remove(idx);
-    Some(item)
+    let room = &mut state.game.rooms[state.room];
+    let item_ref = room.items.remove(idx);
+    state.game.get_item(&item_ref.id)
 }
 
 fn get_item_idx_at(state: &mut State, pos: bs::Position) -> Option<usize> {
     let room = &state.game.rooms[state.room];
-    for item_ref in &room.items {
-        if item_ref.position != pos {
-            continue;
+    for (i, item_ref) in room.items.iter().enumerate() {
+        if item_ref.position == pos {
+            return Some(i);
         }
-        for (i, item) in state.game.items.iter().enumerate() {
-            if item.id == item_ref.id {
-                return Some(i);
-            }
-        }
-        return None;
     }
     None
 }

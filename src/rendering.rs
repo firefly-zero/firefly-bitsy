@@ -2,7 +2,7 @@ use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;
 use bitsy_nostd_parser as bs;
-use firefly_rust as ff;
+use firefly_rust::{self as ff, WIDTH};
 
 const TILES_X: i32 = 16;
 const TILES_Y: i32 = 16;
@@ -107,19 +107,32 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
 }
 
 fn draw_dialog(state: &State) {
+    const MARGIN: i32 = 4;
+    const FONT_WIDTH: i32 = 6;
+
     let Some(dialog) = &state.dialog else {
         return;
     };
 
     let point = ff::Point::new(0, OFFSET_Y + 128);
     let size = ff::Size::new(ff::WIDTH, ff::HEIGHT - point.y);
-    let style = ff::Style::solid(ff::Color::White);
+    let style = ff::Style::solid(ff::Color::DarkGray);
     ff::draw_rect(point, size, style);
 
     let font = state.font.as_font();
-    let point = ff::Point::new(point.x + 4, point.y + 10);
-    let text = &dialog;
-    ff::draw_text(text, &font, point, ff::Color::DarkGray);
+    let mut point = ff::Point::new(point.x + MARGIN, point.y + 10);
+    let mut line = String::new();
+    for word in dialog.split_ascii_whitespace() {
+        let n_chars = (word.len() + line.len()) as i32;
+        if n_chars * FONT_WIDTH > WIDTH - MARGIN * 2 {
+            ff::draw_text(&line, &font, point, ff::Color::White);
+            point.y += 8;
+            line.clear();
+        }
+        line.push(' ');
+        line.push_str(word);
+    }
+    ff::draw_text(&line, &font, point, ff::Color::White);
 }
 
 fn parse_image(image: &bs::Image, sprite: bool) -> Vec<u8> {

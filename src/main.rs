@@ -8,6 +8,7 @@ mod updating;
 use crate::rendering::*;
 use crate::updating::*;
 use alloc::string::String;
+use alloc::vec::Vec;
 use bitsy_nostd_parser as bs;
 use core::cell::OnceCell;
 use firefly_rust as ff;
@@ -20,7 +21,7 @@ struct State {
     pos: bs::Position,
     frame: u8,
     dpad: ff::DPad,
-    dialog: Option<String>,
+    dialog: Option<Vec<String>>,
     font: ff::FileBuf,
 }
 

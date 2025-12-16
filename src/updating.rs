@@ -1,4 +1,5 @@
 use crate::*;
+use alloc::vec::Vec;
 use firefly_rust as ff;
 
 const TILES_X: u8 = 16;
@@ -100,7 +101,28 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
     if dialog.contents.trim().is_empty() {
         return;
     }
-    state.dialog = Some(dialog.contents.clone());
+    let lines = split_lines(&dialog.contents);
+    state.dialog = Some(lines);
+}
+
+fn split_lines(dialog: &str) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut line = String::new();
+    const MARGIN_X: i32 = 2;
+    const FONT_WIDTH: i32 = 6;
+    for word in dialog.split_ascii_whitespace() {
+        let n_chars = (word.len() + line.len()) as i32;
+        if n_chars * FONT_WIDTH > ff::WIDTH - MARGIN_X * 2 {
+            lines.push(line.clone());
+            line.clear();
+        }
+        line.push(' ');
+        line.push_str(word);
+    }
+    if !line.is_empty() {
+        lines.push(line);
+    }
+    lines
 }
 
 fn get_avatar(state: &mut State) -> &mut bs::Sprite {

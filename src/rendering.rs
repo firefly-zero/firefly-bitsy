@@ -109,7 +109,7 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
 fn draw_dialog(state: &State) {
     const MARGIN_X: i32 = 2;
 
-    let Some(dialog) = &state.dialog else {
+    if state.dialog.is_empty() {
         return;
     };
 
@@ -120,7 +120,7 @@ fn draw_dialog(state: &State) {
 
     let font = state.font.as_font();
     let mut point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
-    for line in dialog {
+    for line in state.dialog.iter().take(3) {
         ff::draw_text(line, &font, point, ff::Color::White);
         point.y += 8;
     }

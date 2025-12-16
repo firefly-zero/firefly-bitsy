@@ -21,7 +21,7 @@ struct State {
     pos: bs::Position,
     frame: u8,
     dpad: ff::DPad,
-    dialog: Option<Vec<String>>,
+    dialog: Vec<String>,
     font: ff::FileBuf,
 }
 
@@ -52,7 +52,7 @@ extern "C" fn boot() {
         frame: 0,
         pos: bs::Position { x: 0, y: 0 },
         dpad: ff::DPad::default(),
-        dialog: None,
+        dialog: Vec::new(),
     };
     #[allow(static_mut_refs)]
     unsafe { STATE.set(state) }.ok().unwrap();

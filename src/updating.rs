@@ -19,10 +19,14 @@ fn handle_pad(state: &mut State) {
     let pressed = dpad.just_pressed(&state.dpad);
     state.dpad = dpad;
 
-    if state.dialog.is_some() {
+    if !state.dialog.is_empty() {
         let any = pressed.down || pressed.right || pressed.left || pressed.up;
         if any {
-            state.dialog = None
+            if state.dialog.len() > 3 {
+                state.dialog.remove(0);
+            } else {
+                state.dialog.clear();
+            }
         }
         return;
     }
@@ -102,7 +106,7 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
         return;
     }
     let lines = split_lines(&dialog.contents);
-    state.dialog = Some(lines);
+    state.dialog = lines;
 }
 
 fn split_lines(dialog: &str) -> Vec<String> {

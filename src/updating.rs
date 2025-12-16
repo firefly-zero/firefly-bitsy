@@ -74,6 +74,15 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
     let y = old_pos.y.saturating_add_signed(dy).min(TILES_Y - 1);
     let new_pos = bs::Position { x, y };
 
+    if let Some(item) = pop_item_at(state, new_pos) {
+        let dialog_id = match &item.dialogue_id {
+            Some(id) => id,
+            None => &item.id,
+        };
+        let dialog_id = dialog_id.clone();
+        show_dialog(state, &dialog_id)
+    }
+
     let left_room = leave_room(state, new_pos);
     if left_room {
         return;
@@ -210,6 +219,28 @@ fn get_sprite_at(state: &mut State, pos: bs::Position) -> Option<&bs::Sprite> {
             continue;
         }
         return Some(sprite);
+    }
+    None
+}
+
+fn pop_item_at(state: &mut State, pos: bs::Position) -> Option<bs::Item> {
+    let idx = get_item_idx_at(state, pos)?;
+    let item = state.game.items.remove(idx);
+    Some(item)
+}
+
+fn get_item_idx_at(state: &mut State, pos: bs::Position) -> Option<usize> {
+    let room = &state.game.rooms[state.room];
+    for item_ref in &room.items {
+        if item_ref.position != pos {
+            continue;
+        }
+        for (i, item) in state.game.items.iter().enumerate() {
+            if item.id == item_ref.id {
+                return Some(i);
+            }
+        }
+        return None;
     }
     None
 }

@@ -16,12 +16,20 @@ fn handle_pad(state: &mut State) {
         Some(pad) => pad.as_dpad(),
         None => ff::DPad::default(),
     };
-    let pressed = dpad.just_pressed(&state.dpad);
+    if dpad.any() {
+        state.held_for += 1;
+    } else {
+        state.held_for = 0;
+    }
+    let mut old_dpad = state.dpad;
+    if state.held_for > 14 && state.held_for.is_multiple_of(4) {
+        old_dpad = ff::DPad::default();
+    }
+    let pressed = dpad.just_pressed(&old_dpad);
     state.dpad = dpad;
 
     if !state.dialog.is_empty() {
-        let any = pressed.down || pressed.right || pressed.left || pressed.up;
-        if any {
+        if pressed.any() {
             if state.dialog.len() > 3 {
                 state.dialog.remove(0);
             } else {

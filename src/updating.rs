@@ -12,10 +12,24 @@ pub fn update_state(state: &mut State) {
 }
 
 fn handle_pad(state: &mut State) {
-    let dpad = match ff::read_pad(ff::Peer::COMBINED) {
+    let mut dpad = match ff::read_pad(ff::Peer::COMBINED) {
         Some(pad) => pad.as_dpad(),
         None => ff::DPad::default(),
     };
+    let buttons = ff::read_buttons(ff::Peer::COMBINED);
+    if buttons.s {
+        dpad.down = true;
+    }
+    if buttons.e {
+        dpad.right = true;
+    }
+    if buttons.w {
+        dpad.left = true;
+    }
+    if buttons.n {
+        dpad.up = true;
+    }
+
     if dpad.any() {
         state.held_for += 1;
     } else {

@@ -57,12 +57,11 @@ fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
         if exit.position != new_pos {
             continue;
         }
-        let Some((room_idx, _)) = state
+        let Some(room_idx) = state
             .game
             .rooms
             .iter()
-            .enumerate()
-            .find(|(_, room)| room.id == exit.exit.room_id)
+            .position(|room| room.id == exit.exit.room_id)
         else {
             continue;
         };
@@ -136,6 +135,5 @@ fn get_tile_at(state: &mut State, pos: bs::Position) -> Option<&bs::Tile> {
     let room = &state.game.rooms[state.room];
     let idx = pos.y * TILES_X + pos.x;
     let tile_id = &room.tiles[usize::from(idx)];
-    let tile = state.game.get_tile_by_id(tile_id);
-    tile.ok()
+    state.game.get_tile(tile_id)
 }

@@ -39,7 +39,7 @@ fn set_palette(state: &State) {
 fn draw_tiles(state: &State) {
     let room = &state.game.rooms[state.room];
     for (tile_id, i) in room.tiles.iter().zip(0..) {
-        let Ok(tile) = &state.game.get_tile_by_id(tile_id) else {
+        let Some(tile) = &state.game.get_tile(tile_id) else {
             continue;
         };
         // if let Some(color) = tile.colour_id {

@@ -64,7 +64,7 @@ extern "C" fn render() {
 
 fn set_starting_room() {
     let state = get_state();
-    let Ok(avatar) = state.game.get_avatar() else {
+    let Some(avatar) = state.game.get_avatar() else {
         return;
     };
     if let Some(pos) = avatar.position {

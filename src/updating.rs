@@ -115,7 +115,7 @@ fn split_lines(dialog: &str) -> Vec<String> {
     const MARGIN_X: i32 = 2;
     const FONT_WIDTH: i32 = 6;
     for word in dialog.split_ascii_whitespace() {
-        let n_chars = (word.len() + line.len()) as i32;
+        let n_chars = (word.len() + line.len() + 1) as i32;
         if n_chars * FONT_WIDTH > ff::WIDTH - MARGIN_X * 2 {
             lines.push(line.clone());
             line.clear();

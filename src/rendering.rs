@@ -124,6 +124,18 @@ fn draw_dialog(state: &State) {
         ff::draw_text(line, &font, point, ff::Color::White);
         point.y += 8;
     }
+    if state.dialog.len() > 3 {
+        draw_dialog_arrow()
+    }
+}
+
+fn draw_dialog_arrow() {
+    ff::draw_triangle(
+        ff::Point::new(229, 153),
+        ff::Point::new(229 + 8, 153),
+        ff::Point::new(229 + 4, 153 + 4),
+        ff::Style::solid(ff::Color::LightGray),
+    );
 }
 
 fn parse_image(image: &bs::Image, sprite: bool) -> Vec<u8> {

@@ -2,12 +2,14 @@
 #![no_main]
 extern crate alloc;
 
+mod dialog;
 mod rendering;
 mod updating;
 
+use crate::dialog::*;
 use crate::rendering::*;
 use crate::updating::*;
-use alloc::string::String;
+
 use alloc::vec::Vec;
 use bitsy_nostd_parser as bs;
 use core::cell::OnceCell;
@@ -24,7 +26,7 @@ struct State {
     /// Input on the previous frame.
     dpad: ff::DPad,
     /// Currently active dialog.
-    dialog: Vec<String>,
+    dialog: Dialog,
     /// Tiles in the current room.
     tiles: Vec<(u8, bs::Tile)>,
     font: ff::FileBuf,
@@ -49,7 +51,7 @@ extern "C" fn boot() {
     let Some(font) = ff::load_file_buf("font") else {
         panic!("font not found")
     };
-    let dialog = split_lines(&game.name);
+    let dialog = Dialog::new(&game.name);
     let state = State {
         game,
         font,

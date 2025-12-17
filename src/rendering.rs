@@ -1,4 +1,5 @@
 use crate::*;
+use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use bitsy_nostd_parser as bs;
@@ -128,13 +129,24 @@ fn draw_dialog(state: &State) {
 
     let font = state.font.as_font();
     let mut point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
-    for line in state.dialog.iter().take(3) {
-        ff::draw_text(line, &font, point, ff::Color::White);
-        point.y += 8;
+    for page in &state.dialog.pages {
+        for line in &page.lines {
+            let mut line_text = String::new();
+            for word in &line.words {
+                line_text.push_str(&word.text);
+                line_text.push(' ');
+            }
+            ff::draw_text(&line_text, &font, point, ff::Color::White);
+            point.y += 8;
+        }
     }
-    if state.dialog.len() > 3 {
-        draw_dialog_arrow()
-    }
+    // for line in state.dialog.iter().take(3) {
+    //     ff::draw_text(line, &font, point, ff::Color::White);
+    //     point.y += 8;
+    // }
+    // if state.dialog.len() > 3 {
+    //     draw_dialog_arrow()
+    // }
 }
 
 fn draw_dialog_arrow() {

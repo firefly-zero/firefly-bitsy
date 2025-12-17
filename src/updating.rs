@@ -1,5 +1,4 @@
 use crate::*;
-use alloc::vec::Vec;
 use firefly_rust as ff;
 
 const TILES_X: u8 = 16;
@@ -27,11 +26,7 @@ fn handle_pad(state: &mut State) {
 
     if !state.dialog.is_empty() {
         if pressed.any() {
-            if state.dialog.len() > 3 {
-                state.dialog.remove(0);
-            } else {
-                state.dialog.clear();
-            }
+            state.dialog.next_page();
         }
         return;
     }
@@ -133,35 +128,8 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
     if dialog.contents.trim().is_empty() {
         return;
     }
-    let lines = split_lines(&dialog.contents);
+    let lines = Dialog::new(&dialog.contents);
     state.dialog = lines;
-}
-
-pub fn split_lines(dialog: &str) -> Vec<String> {
-    // Remove triple quotes around the dialog
-    const TRIPLE_QUOTE: &str = r#"""""#;
-    let mut dialog = dialog;
-    if let Some(new_dialog) = dialog.strip_prefix(TRIPLE_QUOTE) {
-        dialog = new_dialog.strip_suffix(TRIPLE_QUOTE).unwrap_or(dialog);
-    }
-
-    let mut lines = Vec::new();
-    let mut line = String::new();
-    const MARGIN_X: i32 = 2;
-    const FONT_WIDTH: i32 = 6;
-    for word in dialog.split_ascii_whitespace() {
-        let n_chars = (word.len() + line.len() + 1) as i32;
-        if n_chars * FONT_WIDTH > ff::WIDTH - MARGIN_X * 2 {
-            lines.push(line.clone());
-            line.clear();
-        }
-        line.push(' ');
-        line.push_str(word);
-    }
-    if !line.is_empty() {
-        lines.push(line);
-    }
-    lines
 }
 
 fn get_avatar(state: &mut State) -> &mut bs::Sprite {

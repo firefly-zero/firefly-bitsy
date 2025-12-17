@@ -137,7 +137,7 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
     state.dialog = lines;
 }
 
-fn split_lines(dialog: &str) -> Vec<String> {
+pub fn split_lines(dialog: &str) -> Vec<String> {
     let mut lines = Vec::new();
     let mut line = String::new();
     const MARGIN_X: i32 = 2;

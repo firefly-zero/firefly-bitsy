@@ -49,7 +49,7 @@ extern "C" fn boot() {
     let Some(font) = ff::load_file_buf("font") else {
         panic!("font not found")
     };
-    ff::log_debug(&game.name);
+    let dialog = split_lines(&game.name);
     let state = State {
         game,
         font,
@@ -58,7 +58,7 @@ extern "C" fn boot() {
         held_for: 0,
         pos: bs::Position { x: 0, y: 0 },
         dpad: ff::DPad::default(),
-        dialog: Vec::new(),
+        dialog,
         tiles: Vec::new(),
     };
     #[allow(static_mut_refs)]

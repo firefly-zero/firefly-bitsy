@@ -9,20 +9,27 @@ pub struct Dialog {
 
 impl Dialog {
     pub fn new(dialog: &str) -> Self {
-        // Remove triple quotes around the dialog
         const TRIPLE_QUOTE: &str = r#"""""#;
+        const LINES_PER_PAGE: usize = 2;
+
+        // Remove triple quotes around the dialog
         let mut dialog = dialog;
         if let Some(new_dialog) = dialog.strip_prefix(TRIPLE_QUOTE) {
             dialog = new_dialog.strip_suffix(TRIPLE_QUOTE).unwrap_or(dialog);
         }
 
         let tokenizer = Tokenizer::new(dialog);
+        let mut pages = Vec::new();
         let mut lines = Vec::new();
         let mut words: Vec<Word> = Vec::new();
         let mut effect = TextEffect::None;
         for token in tokenizer {
             match token {
                 Token::TagBr => {
+                    if lines.len() >= LINES_PER_PAGE {
+                        pages.push(Page { lines });
+                        lines = Vec::new();
+                    }
                     lines.push(Line { words });
                     words = Vec::new();
                 }
@@ -36,12 +43,14 @@ impl Dialog {
                 }
             }
         }
+
         if !words.is_empty() {
             lines.push(Line { words });
         }
+        if !lines.is_empty() {
+            pages.push(Page { lines });
+        }
 
-        let page = Page { lines };
-        let pages = vec![page];
         Self { pages }
     }
 

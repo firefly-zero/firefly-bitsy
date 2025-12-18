@@ -40,8 +40,12 @@ impl Dialog {
         Self { pages }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.pages.is_empty()
+    pub fn n_pages(&self) -> usize {
+        self.pages.len()
+    }
+
+    pub fn current_page(&self) -> Option<&Page> {
+        self.pages.first()
     }
 
     pub fn next_page(&mut self) {

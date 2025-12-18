@@ -24,7 +24,7 @@ fn handle_pad(state: &mut State) {
     let pressed = dpad.just_pressed(&old_dpad);
     state.dpad = dpad;
 
-    if !state.dialog.is_empty() {
+    if state.dialog.n_pages() != 0 {
         if pressed.any() {
             state.dialog.next_page();
         }

@@ -17,11 +17,15 @@ impl Dialog {
         }
 
         let tokenizer = Tokenizer::new(dialog);
+        let mut lines = Vec::new();
         let mut words: Vec<Word> = Vec::new();
         let mut effect = TextEffect::None;
         for token in tokenizer {
             match token {
-                Token::TagBr => {}
+                Token::TagBr => {
+                    lines.push(Line { words });
+                    words = Vec::new();
+                }
                 Token::TagPg => {}
                 Token::TagEff(e) => effect = e,
                 Token::TagUnknown => {}
@@ -32,9 +36,10 @@ impl Dialog {
                 }
             }
         }
+        if !words.is_empty() {
+            lines.push(Line { words });
+        }
 
-        let line = Line { words };
-        let lines = vec![line];
         let page = Page { lines };
         let pages = vec![page];
         Self { pages }

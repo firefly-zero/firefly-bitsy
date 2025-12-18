@@ -133,7 +133,6 @@ fn draw_dialog(state: &State) {
         let mut line_text = String::new();
         for word in &line.words {
             line_text.push_str(&word.text);
-            line_text.push(' ');
         }
         ff::draw_text(&line_text, &font, point, ff::Color::White);
         point.y += 8;

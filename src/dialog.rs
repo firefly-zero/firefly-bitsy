@@ -104,12 +104,14 @@ enum Token {
 
 struct Tokenizer<'a> {
     buffer: Chars<'a>,
+    stash: Option<char>,
 }
 
 impl<'a> Tokenizer<'a> {
     fn new(text: &'a str) -> Self {
         Self {
             buffer: text.chars(),
+            stash: None,
         }
     }
 }
@@ -120,20 +122,55 @@ impl<'a> Iterator for Tokenizer<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         let mut word = String::new();
         let mut found_letter = false;
+        let mut inside_tag = false;
         loop {
-            let Some(ch) = self.buffer.next() else {
+            let ch = if let Some(stash) = self.stash.take() {
+                stash
+            } else if let Some(ch) = self.buffer.next() {
+                ch
+            } else {
                 break;
             };
             word.push(ch);
-            if ch == '\n' {
-                return Some(Token::TagBr);
-            }
-            if ch.is_ascii_whitespace() {
-                if found_letter {
-                    break;
+            match ch {
+                '\n' => return Some(Token::TagBr),
+                '{' => {
+                    if found_letter {
+                        self.stash = Some('{');
+                        word.pop();
+                        break;
+                    }
+                    inside_tag = true;
                 }
-            } else {
-                found_letter = true
+                '}' => {
+                    if inside_tag {
+                        if word.starts_with("{/") {
+                            return Some(Token::CloseTag);
+                        }
+                        let token = match word.as_str() {
+                            "{br}" => Token::TagBr,
+                            "{pg}" => Token::TagPg,
+                            "{clr1}" => Token::TagEff(TextEffect::Color(1)),
+                            "{clr2}" => Token::TagEff(TextEffect::Color(2)),
+                            "{clr3}" => Token::TagEff(TextEffect::Color(3)),
+                            "{clr 1}" => Token::TagEff(TextEffect::Color(1)),
+                            "{clr 2}" => Token::TagEff(TextEffect::Color(2)),
+                            "{clr 3}" => Token::TagEff(TextEffect::Color(3)),
+                            "{wvy}" => Token::TagEff(TextEffect::Wavy),
+                            "{shk}" => Token::TagEff(TextEffect::Shaky),
+                            "{rbw}" => Token::TagEff(TextEffect::Rainbow),
+                            _ => Token::TagUnknown,
+                        };
+                        return Some(token);
+                    }
+                    found_letter = true
+                }
+                '\t' | '\x0C' | '\r' | ' ' => {
+                    if !inside_tag && found_letter {
+                        break;
+                    }
+                }
+                _ => found_letter = true,
             }
         }
         if word.is_empty() {

@@ -1,7 +1,9 @@
 use crate::*;
 use firefly_rust as ff;
 
+/// The number of tiles in a row.
 const TILES_X: u8 = 16;
+/// The number of tiles in a column.
 const TILES_Y: u8 = 16;
 
 pub fn update_state(state: &mut State) {

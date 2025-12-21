@@ -2,7 +2,7 @@ use crate::*;
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
-use bitsy_nostd_parser as bs;
+use bitsy_reparser as bs;
 use firefly_rust as ff;
 
 const TILES_X: u8 = 16;

@@ -11,7 +11,7 @@ use crate::rendering::*;
 use crate::updating::*;
 
 use alloc::vec::Vec;
-use bitsy_nostd_parser as bs;
+use bitsy_reparser as bs;
 use core::cell::OnceCell;
 use firefly_rust as ff;
 

@@ -8,9 +8,10 @@ pub struct Dialog {
 }
 
 impl Dialog {
-    pub fn new(dialog: &str, state: &mut bs::State) -> Self {
+    pub fn new(dialog: &str, state: &mut bs::State, char_width: u8) -> Self {
         const TRIPLE_QUOTE: &str = r#"""""#;
         const LINES_PER_PAGE: usize = 2;
+        const LINE_WIDTH: usize = firefly_rust::WIDTH as usize;
 
         // Remove triple quotes around the dialog
         let mut dialog = dialog;
@@ -27,28 +28,49 @@ impl Dialog {
         let mut pages = Vec::new();
         let mut lines = Vec::new();
         let mut words: Vec<bs::Word> = Vec::new();
+        let mut line_width = 0;
         for word in interpreter {
             use bitsy_script::Word::*;
             match word {
                 LineBreak => {
+                    if !words.is_empty() {
+                        lines.push(Line { words });
+                        words = Vec::new();
+                        line_width = 0;
+                    }
                     if lines.len() >= LINES_PER_PAGE {
                         pages.push(Page { lines });
                         lines = Vec::new();
                     }
-                    lines.push(Line { words });
-                    words = Vec::new();
                 }
                 PageBreak => {
                     if !words.is_empty() {
                         lines.push(Line { words });
                         words = Vec::new();
+                        line_width = 0;
                     }
                     if !lines.is_empty() {
                         pages.push(Page { lines });
                         lines = Vec::new();
                     }
                 }
-                w => words.push(w),
+                w => {
+                    let n_chars: usize = if let Text(t, _) = &w { t.len() } else { 8 };
+                    let word_width = n_chars * usize::from(char_width);
+                    if line_width + word_width > LINE_WIDTH {
+                        if !words.is_empty() {
+                            lines.push(Line { words });
+                            words = Vec::new();
+                            line_width = 0;
+                        }
+                        if lines.len() >= LINES_PER_PAGE {
+                            pages.push(Page { lines });
+                            lines = Vec::new();
+                        }
+                    }
+                    line_width += word_width;
+                    words.push(w)
+                }
             }
         }
 

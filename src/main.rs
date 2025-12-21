@@ -53,7 +53,8 @@ extern "C" fn boot() {
         panic!("font not found")
     };
     let mut script_state = bitsy_script::State::default();
-    let dialog = Dialog::new(&game.name, &mut script_state);
+    let char_width = font.as_font().char_width();
+    let dialog = Dialog::new(&game.name, &mut script_state, char_width);
     let state = State {
         game,
         font,

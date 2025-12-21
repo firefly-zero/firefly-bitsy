@@ -94,8 +94,9 @@ fn draw_sprites(state: &State) {
 
 fn draw_avatar(state: &State) {
     for sprite in &state.game.sprites {
-        if sprite.id == "A" {
+        if sprite.id == state.script_state.avatar {
             draw_sprite(sprite, state.frame);
+            return;
         }
     }
 }
@@ -132,7 +133,15 @@ fn draw_dialog(state: &State) {
     for line in &page.lines {
         let mut line_text = String::new();
         for word in &line.words {
-            line_text.push_str(&word.text);
+            use bitsy_script::Word::*;
+            match word {
+                Text(text, _) => line_text.push_str(text),
+                Sprite(_) => line_text.push(' '),
+                Tile(_) => line_text.push(' '),
+                Item(_) => line_text.push(' '),
+                LineBreak => line_text.push('\n'),
+                PageBreak => line_text.push('\n'),
+            }
         }
         ff::draw_text(&line_text, &font, point, ff::Color::White);
         point.y += 8;

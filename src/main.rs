@@ -27,6 +27,7 @@ struct State {
     dpad: ff::DPad,
     /// Currently active dialog.
     dialog: Dialog,
+    script_state: bitsy_script::State,
     /// Tiles in the current room.
     tiles: Vec<(u8, bs::Tile)>,
     font: ff::FileBuf,
@@ -51,7 +52,8 @@ extern "C" fn boot() {
     let Some(font) = ff::load_file_buf("font") else {
         panic!("font not found")
     };
-    let dialog = Dialog::new(&game.name);
+    let mut script_state = bitsy_script::State::default();
+    let dialog = Dialog::new(&game.name, &mut script_state);
     let state = State {
         game,
         font,
@@ -62,6 +64,7 @@ extern "C" fn boot() {
         dpad: ff::DPad::default(),
         dialog,
         tiles: Vec::new(),
+        script_state,
     };
     #[allow(static_mut_refs)]
     unsafe { STATE.set(state) }.ok().unwrap();
@@ -85,8 +88,11 @@ fn set_starting_room() {
     let Some(avatar) = state.game.get_avatar() else {
         return;
     };
+    state.script_state.avatar = avatar.id.clone();
     if let Some(pos) = avatar.position {
         state.pos = pos;
+        state.script_state.pos_x = pos.x;
+        state.script_state.pos_y = pos.y;
     }
     let Some(room_id) = &avatar.room_id else {
         return;

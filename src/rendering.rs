@@ -74,17 +74,9 @@ fn set_palette(state: &State) {
 }
 
 fn draw_tiles(state: &State) {
-    for (i, tile) in &state.tiles {
-        // if let Some(color) = tile.colour_id {
-        //     let color = Color::try_from(color as usize).unwrap();
-        // }
-        let frame = pick_frame(&tile.animation_frames, state.frame);
-        let primary = match tile.colour_id {
-            Some(c) => c as u8,
-            None => 1,
-        };
-        let image = parse_image(frame, primary);
-        let image = unsafe { ff::Image::from_bytes(&image) };
+    for (i, images) in &state.tiles {
+        let image = pick_raw_frame(images, state.frame);
+        let image = unsafe { ff::Image::from_bytes(image) };
         let x = i % TILES_X;
         let y = i / TILES_Y;
         let point = tile_point(x, y);
@@ -222,7 +214,7 @@ fn draw_dialog_arrow(state: &State) {
     );
 }
 
-fn parse_image(image: &bs::Image, primary: u8) -> Vec<u8> {
+pub fn parse_image(image: &bs::Image, primary: u8) -> Vec<u8> {
     let pixels = &image.pixels;
     let is_hd = pixels.len() == 256;
     let width = if is_hd { 16 } else { 8 };
@@ -258,6 +250,11 @@ fn tile_point(x: u8, y: u8) -> ff::Point {
 }
 
 fn pick_frame(frames: &[bs::Image], frame: u8) -> &bs::Image {
+    let frame = usize::from(frame / 12);
+    &frames[frame % frames.len()]
+}
+
+fn pick_raw_frame(frames: &[Image], frame: u8) -> &Image {
     let frame = usize::from(frame / 12);
     &frames[frame % frames.len()]
 }

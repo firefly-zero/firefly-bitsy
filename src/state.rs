@@ -7,6 +7,9 @@ use firefly_rust as ff;
 
 static mut STATE: OnceCell<State> = OnceCell::new();
 
+pub type Image = Vec<u8>;
+pub type Images = Vec<Image>;
+
 pub struct State {
     pub game: bs::Game,
     pub room: usize,
@@ -19,7 +22,7 @@ pub struct State {
     pub dialog: Dialog,
     pub script_state: bitsy_script::State,
     /// Tiles in the current room.
-    pub tiles: Vec<(u8, bs::Tile)>,
+    pub tiles: Vec<(u8, Images)>,
     pub font: ff::FileBuf,
 }
 
@@ -63,7 +66,16 @@ impl State {
                 continue;
             };
             let tile = (*tile).clone();
-            self.tiles.push((i, tile));
+            let primary = match tile.colour_id {
+                Some(c) => c as u8,
+                None => 1,
+            };
+            let mut images = Vec::new();
+            for frame in tile.animation_frames {
+                let image = parse_image(&frame, primary);
+                images.push(image);
+            }
+            self.tiles.push((i, images));
         }
     }
 }

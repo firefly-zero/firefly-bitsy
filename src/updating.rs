@@ -85,6 +85,10 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
     if left_room {
         return;
     }
+    let ended_game = activate_ending(state, new_pos);
+    if ended_game {
+        return;
+    }
 
     if let Some(sprite) = get_sprite_at(state, new_pos) {
         let sprite = sprite.clone();
@@ -98,6 +102,7 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
     state.set_pos(new_pos);
 }
 
+/// Check if the given position has the exit from the current room and activate it.
 fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
     let room = &state.game.rooms[state.room];
     for exit in &room.exits {
@@ -117,6 +122,23 @@ fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
     false
 }
 
+fn activate_ending(state: &mut State, new_pos: bs::Position) -> bool {
+    let room = &state.game.rooms[state.room];
+    for ending in &room.endings {
+        if ending.position != new_pos {
+            continue;
+        }
+        let pos = ending.position;
+        let ending_id = ending.id.clone();
+        show_ending(state, &ending_id);
+        state.set_pos(pos);
+        state.script_state.end = true;
+        return true;
+    }
+    false
+}
+
+/// Show dialog (if any) for the given sprite.
 fn activate_sprite(state: &mut State, sprite: &bs::Sprite) {
     let dialog_id = match &sprite.dialogue_id {
         Some(id) => id,
@@ -125,22 +147,29 @@ fn activate_sprite(state: &mut State, sprite: &bs::Sprite) {
     show_dialog(state, dialog_id)
 }
 
+/// Activate dialog with the given ID.
 fn show_dialog(state: &mut State, dialog_id: &str) {
     let Some(dialog) = state.game.dialogues.iter().find(|d| d.id == dialog_id) else {
         return;
     };
-    if dialog.contents.trim().is_empty() {
+    show_dialog_text(state, &dialog.contents.clone())
+}
+
+fn show_ending(state: &mut State, ending_id: &str) {
+    let Some(ending) = state.game.endings.iter().find(|d| d.id == ending_id) else {
+        return;
+    };
+    show_dialog_text(state, &ending.dialogue.clone())
+}
+
+fn show_dialog_text(state: &mut State, dialog: &str) {
+    if dialog.trim().is_empty() {
         return;
     }
     let font = state.font.as_font();
     let char_width = font.char_width();
     let char_height = font.char_height();
-    let lines = Dialog::new(
-        &dialog.contents,
-        &mut state.script_state,
-        char_width,
-        char_height,
-    );
+    let lines = Dialog::new(dialog, &mut state.script_state, char_width, char_height);
     state.dialog = lines;
 }
 

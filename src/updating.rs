@@ -34,6 +34,10 @@ fn handle_pad(state: &mut State) {
         return;
     }
 
+    if state.script_state.end {
+        return;
+    }
+
     if pressed.left {
         move_avatar_to(state, -1, 0);
     } else if pressed.right {

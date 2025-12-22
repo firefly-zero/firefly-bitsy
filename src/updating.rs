@@ -10,7 +10,7 @@ const TILES_Y: u8 = 16;
 pub fn update_state(state: &mut State) {
     state.frame = (state.frame + 1) % 60;
     handle_pad(state);
-    get_avatar(state).position = Some(state.pos);
+    get_avatar(state).position = Some(state.pos());
 }
 
 fn handle_pad(state: &mut State) {
@@ -67,7 +67,7 @@ fn read_dpad() -> firefly_rust::DPad {
 }
 
 fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
-    let old_pos = state.pos;
+    let old_pos = state.pos();
     let x = old_pos.x.saturating_add_signed(dx).min(TILES_X - 1);
     let y = old_pos.y.saturating_add_signed(dy).min(TILES_Y - 1);
     let new_pos = bs::Position { x, y };
@@ -95,7 +95,7 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
         return;
     }
 
-    state.pos = new_pos;
+    state.set_pos(new_pos);
 }
 
 fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
@@ -104,12 +104,13 @@ fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
         if exit.position != new_pos {
             continue;
         }
-        state.pos = exit.exit.position;
+        let pos = exit.exit.position;
         let room_id = exit.exit.room_id.clone();
         if let Some(dialog_id) = &exit.dialogue_id {
             let dialog_id = dialog_id.clone();
             show_dialog(state, &dialog_id);
         }
+        state.set_pos(pos);
         set_room(state, &room_id);
         return true;
     }

@@ -10,7 +10,6 @@ static mut STATE: OnceCell<State> = OnceCell::new();
 pub struct State {
     pub game: bs::Game,
     pub room: usize,
-    pub pos: bs::Position,
     pub frame: u8,
     pub held_for: u32,
     /// Input on the previous frame.
@@ -21,6 +20,20 @@ pub struct State {
     /// Tiles in the current room.
     pub tiles: Vec<(u8, bs::Tile)>,
     pub font: ff::FileBuf,
+}
+
+impl State {
+    pub fn pos(&self) -> bs::Position {
+        bs::Position {
+            x: self.script_state.pos_x,
+            y: self.script_state.pos_y,
+        }
+    }
+
+    pub fn set_pos(&mut self, pos: bs::Position) {
+        self.script_state.pos_x = pos.x;
+        self.script_state.pos_y = pos.y;
+    }
 }
 
 fn set_state(state: State) {
@@ -61,7 +74,6 @@ pub fn load_state() {
         room: 0,
         frame: 0,
         held_for: 0,
-        pos: bs::Position { x: 0, y: 0 },
         dpad: ff::DPad::default(),
         dialog,
         tiles: Vec::new(),
@@ -78,7 +90,6 @@ fn set_starting_room() {
     };
     state.script_state.avatar = avatar.id.clone();
     if let Some(pos) = avatar.position {
-        state.pos = pos;
         state.script_state.pos_x = pos.x;
         state.script_state.pos_y = pos.y;
     }

@@ -78,9 +78,8 @@ struct DialogBuilder {
 impl DialogBuilder {
     pub fn build(mut self, dialog: &str, state: &mut bs::State) -> Dialog {
         const TRIPLE_QUOTE: &str = r#"""""#;
-        const BOX_WIDTH: usize = firefly_rust::WIDTH as usize;
-        // const BOX_HEIGHT: usize = firefly_rust::HEIGHT as usize - 128;
-        const BOX_HEIGHT: usize = 10;
+        let box_width = firefly_rust::WIDTH as usize;
+        let box_height = usize::from(self.char_height) * 2;
 
         // Remove triple quotes around the dialog
         let mut dialog = dialog;
@@ -99,7 +98,7 @@ impl DialogBuilder {
             match word {
                 LineBreak => {
                     self = self.flush_line();
-                    if self.offset_y > BOX_HEIGHT {
+                    if self.offset_y >= box_height {
                         self = self.flush_page();
                     }
                 }
@@ -112,9 +111,9 @@ impl DialogBuilder {
                 w => {
                     let n_chars: usize = if let Text(t, _) = &w { t.len() } else { 8 };
                     let word_width = n_chars * usize::from(self.char_width);
-                    if self.offset_x + word_width > BOX_WIDTH {
+                    if self.offset_x + word_width > box_width {
                         self = self.flush_line();
-                        if self.offset_y >= BOX_HEIGHT {
+                        if self.offset_y >= box_height {
                             self = self.flush_page();
                         }
                     }

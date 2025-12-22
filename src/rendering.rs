@@ -9,7 +9,8 @@ const TILES_Y: u8 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
 
-pub fn render_room(state: &State) {
+pub fn render_room(state: &mut State) {
+    clear_room(state);
     set_palette(state);
     draw_tiles(state);
     draw_items(state);
@@ -19,7 +20,6 @@ pub fn render_room(state: &State) {
 }
 
 fn set_palette(state: &State) {
-    ff::clear_screen(ff::Color::Black);
     let room = &state.game.rooms[state.room];
     let palette = match &room.palette_id {
         Some(id) => id.as_str(),
@@ -54,6 +54,16 @@ fn draw_tiles(state: &State) {
         let point = tile_point(x, y);
         ff::draw_image(&image, point);
     }
+}
+
+fn clear_room(state: &State) {
+    let color = ff::Color::Black;
+    if state.dialog.n_pages() == 0 {
+        ff::clear_screen(color);
+    }
+    let point = ff::Point::new(OFFSET_X, OFFSET_Y);
+    let size = ff::Size::new(TILES_X * 8, TILES_Y * 8);
+    ff::draw_rect(point, size, ff::Style::solid(color));
 }
 
 fn draw_items(state: &State) {
@@ -115,27 +125,40 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
     ff::draw_image(&image, point);
 }
 
-fn draw_dialog(state: &State) {
+fn draw_dialog(state: &mut State) {
     const MARGIN_X: i32 = 2;
 
-    let Some(page) = &state.dialog.current_page() else {
+    // Slow down word rendering.
+    if !state.frame.is_multiple_of(3) {
+        return;
+    }
+
+    let Some(page) = state.dialog.current_page() else {
         return;
     };
 
     let point = ff::Point::new(0, OFFSET_Y + 128);
-    let size = ff::Size::new(ff::WIDTH, ff::HEIGHT - point.y);
-    let style = ff::Style::solid(ff::Color::DarkGray);
-    ff::draw_rect(point, size, style);
+    if !page.started {
+        page.started = true;
+        let size = ff::Size::new(ff::WIDTH, ff::HEIGHT - point.y);
+        let style = ff::Style::solid(ff::Color::DarkGray);
+        ff::draw_rect(point, size, style);
+    }
 
     let font = state.font.as_font();
     let mut point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
-    for line in &page.lines {
-        for word in &line.words {
+    for line in &mut page.lines {
+        for word in &mut line.words {
             use bitsy_script::Word::*;
             match &word.word {
                 Text(text, _) => {
+                    if word.rendered {
+                        continue;
+                    }
+                    word.rendered = true;
                     point.x = word.point.x;
                     ff::draw_text(text, &font, point, ff::Color::White);
+                    return;
                 }
                 Sprite(_) => {}
                 Tile(_) => {}

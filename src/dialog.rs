@@ -18,8 +18,8 @@ impl Dialog {
         self.pages.len()
     }
 
-    pub fn current_page(&self) -> Option<&Page> {
-        self.pages.first()
+    pub fn current_page(&mut self) -> Option<&mut Page> {
+        self.pages.first_mut()
     }
 
     pub fn next_page(&mut self) {
@@ -31,6 +31,7 @@ impl Dialog {
 
 pub struct Page {
     pub lines: Vec<Line>,
+    pub started: bool,
 }
 
 pub struct Line {
@@ -40,6 +41,7 @@ pub struct Line {
 pub struct Word {
     pub word: bs::Word,
     pub point: ff::Point,
+    pub rendered: bool,
 }
 
 #[derive(Default)]
@@ -92,8 +94,11 @@ impl DialogBuilder {
                             self = self.flush_page();
                         }
                     }
-                    let point = ff::Point::new(self.line_width as i32, 0);
-                    self.words.push(Word { word: w, point });
+                    self.words.push(Word {
+                        word: w,
+                        point: ff::Point::new(self.line_width as i32, 0),
+                        rendered: false,
+                    });
                     self.line_width += word_width;
                 }
             }
@@ -103,7 +108,10 @@ impl DialogBuilder {
             self.lines.push(Line { words: self.words });
         }
         if !self.lines.is_empty() {
-            self.pages.push(Page { lines: self.lines });
+            self.pages.push(Page {
+                lines: self.lines,
+                started: false,
+            });
         }
         Dialog { pages: self.pages }
     }
@@ -118,7 +126,10 @@ impl DialogBuilder {
     }
 
     fn flush_page(mut self) -> Self {
-        self.pages.push(Page { lines: self.lines });
+        self.pages.push(Page {
+            lines: self.lines,
+            started: false,
+        });
         self.lines = Vec::new();
         self
     }

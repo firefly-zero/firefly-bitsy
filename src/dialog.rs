@@ -9,9 +9,13 @@ pub struct Dialog {
 }
 
 impl Dialog {
-    pub fn new(dialog: &str, state: &mut bs::State, char_width: u8) -> Self {
-        let builder = DialogBuilder::default();
-        builder.build(dialog, state, char_width)
+    pub fn new(dialog: &str, state: &mut bs::State, char_width: u8, char_height: u8) -> Self {
+        let builder = DialogBuilder {
+            char_width,
+            char_height,
+            ..Default::default()
+        };
+        builder.build(dialog, state)
     }
 
     pub fn n_pages(&self) -> usize {
@@ -35,7 +39,7 @@ impl Dialog {
 }
 
 pub struct Page {
-    pub lines: Vec<Line>,
+    pub words: Vec<Word>,
     /// If the renderer started to render the page on the screen.
     ///
     /// When false, the renderer will first clear the region to hide the old page.
@@ -46,19 +50,13 @@ pub struct Page {
 
 impl Page {
     pub fn all_rendered(&self) -> bool {
-        for line in &self.lines {
-            for word in &line.words {
-                if !word.rendered {
-                    return false;
-                }
+        for word in &self.words {
+            if !word.rendered {
+                return false;
             }
         }
         true
     }
-}
-
-pub struct Line {
-    pub words: Vec<Word>,
 }
 
 pub struct Word {
@@ -70,16 +68,19 @@ pub struct Word {
 #[derive(Default)]
 struct DialogBuilder {
     pages: Vec<Page>,
-    lines: Vec<Line>,
     words: Vec<Word>,
-    line_width: usize,
+    char_width: u8,
+    char_height: u8,
+    offset_x: usize,
+    offset_y: usize,
 }
 
 impl DialogBuilder {
-    pub fn build(mut self, dialog: &str, state: &mut bs::State, char_width: u8) -> Dialog {
+    pub fn build(mut self, dialog: &str, state: &mut bs::State) -> Dialog {
         const TRIPLE_QUOTE: &str = r#"""""#;
-        const LINES_PER_PAGE: usize = 2;
-        const LINE_WIDTH: usize = firefly_rust::WIDTH as usize;
+        const BOX_WIDTH: usize = firefly_rust::WIDTH as usize;
+        // const BOX_HEIGHT: usize = firefly_rust::HEIGHT as usize - 128;
+        const BOX_HEIGHT: usize = 10;
 
         // Remove triple quotes around the dialog
         let mut dialog = dialog;
@@ -98,41 +99,39 @@ impl DialogBuilder {
             match word {
                 LineBreak => {
                     self = self.flush_line();
-                    if self.lines.len() >= LINES_PER_PAGE {
+                    if self.offset_y > BOX_HEIGHT {
                         self = self.flush_page();
                     }
                 }
                 PageBreak => {
                     self = self.flush_line();
-                    if !self.lines.is_empty() {
+                    if !self.words.is_empty() {
                         self = self.flush_page();
                     }
                 }
                 w => {
                     let n_chars: usize = if let Text(t, _) = &w { t.len() } else { 8 };
-                    let word_width = n_chars * usize::from(char_width);
-                    if self.line_width + word_width > LINE_WIDTH {
+                    let word_width = n_chars * usize::from(self.char_width);
+                    if self.offset_x + word_width > BOX_WIDTH {
                         self = self.flush_line();
-                        if self.lines.len() >= LINES_PER_PAGE {
+                        if self.offset_y >= BOX_HEIGHT {
                             self = self.flush_page();
                         }
                     }
+                    let point = ff::Point::new(self.offset_x as i32, self.offset_y as i32);
                     self.words.push(Word {
                         word: w,
-                        point: ff::Point::new(self.line_width as i32, 0),
+                        point,
                         rendered: false,
                     });
-                    self.line_width += word_width;
+                    self.offset_x += word_width;
                 }
             }
         }
 
         if !self.words.is_empty() {
-            self.lines.push(Line { words: self.words });
-        }
-        if !self.lines.is_empty() {
             self.pages.push(Page {
-                lines: self.lines,
+                words: self.words,
                 started: false,
                 fast: false,
             });
@@ -141,21 +140,22 @@ impl DialogBuilder {
     }
 
     fn flush_line(mut self) -> Self {
-        if !self.words.is_empty() {
-            self.lines.push(Line { words: self.words });
-            self.words = Vec::new();
-            self.line_width = 0;
+        if self.offset_x != 0 {
+            self.offset_x = 0;
+            self.offset_y += usize::from(self.char_height);
         }
         self
     }
 
     fn flush_page(mut self) -> Self {
+        self.offset_x = 0;
+        self.offset_y = 0;
         self.pages.push(Page {
-            lines: self.lines,
+            words: self.words,
             started: false,
             fast: false,
         });
-        self.lines = Vec::new();
+        self.words = Vec::new();
         self
     }
 }

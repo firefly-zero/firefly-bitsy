@@ -94,7 +94,8 @@ pub fn load_state() {
     }
 
     let char_width = font.as_font().char_width();
-    let dialog = Dialog::new(&game.name, &mut script_state, char_width);
+    let char_height = font.as_font().char_height();
+    let dialog = Dialog::new(&game.name, &mut script_state, char_width, char_height);
     let state = State {
         game,
         font,

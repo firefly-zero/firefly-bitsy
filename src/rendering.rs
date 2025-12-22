@@ -145,30 +145,27 @@ fn draw_dialog(state: &mut State) {
     }
 
     let font = state.font.as_font();
-    let mut point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
-    for line in &mut page.lines {
-        for word in &mut line.words {
-            use bitsy_script::Word::*;
-            match &word.word {
-                Text(text, _) => {
-                    if word.rendered {
-                        continue;
-                    }
-                    word.rendered = true;
-                    point.x = word.point.x;
-                    ff::draw_text(text, &font, point, ff::Color::White);
-                    if !page.fast {
-                        return;
-                    }
+    let point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
+    for word in &mut page.words {
+        use bitsy_script::Word::*;
+        match &word.word {
+            Text(text, _) => {
+                if word.rendered {
+                    continue;
                 }
-                Sprite(_) => {}
-                Tile(_) => {}
-                Item(_) => {}
-                LineBreak => {}
-                PageBreak => {}
-            };
-        }
-        point.y += 8;
+                word.rendered = true;
+                let word_point = point + word.point;
+                ff::draw_text(text, &font, word_point, ff::Color::White);
+                if !page.fast {
+                    return;
+                }
+            }
+            Sprite(_) => {}
+            Tile(_) => {}
+            Item(_) => {}
+            LineBreak => {}
+            PageBreak => {}
+        };
     }
     // for line in state.dialog.iter().take(3) {
     //     ff::draw_text(line, &font, point, ff::Color::White);

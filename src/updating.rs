@@ -132,8 +132,15 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
     if dialog.contents.trim().is_empty() {
         return;
     }
-    let char_width = state.font.as_font().char_width();
-    let lines = Dialog::new(&dialog.contents, &mut state.script_state, char_width);
+    let font = state.font.as_font();
+    let char_width = font.char_width();
+    let char_height = font.char_height();
+    let lines = Dialog::new(
+        &dialog.contents,
+        &mut state.script_state,
+        char_width,
+        char_height,
+    );
     state.dialog = lines;
 }
 

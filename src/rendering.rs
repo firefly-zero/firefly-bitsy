@@ -2,12 +2,16 @@ use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;
 use bitsy_reparser as bs;
-use firefly_rust as ff;
+use firefly_rust::{self as ff, RGB};
 
 const TILES_X: u8 = 16;
 const TILES_Y: u8 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
+
+const COLOR_BG: ff::Color = ff::Color::Black;
+const COLOR_DIALOG_BOX: ff::Color = ff::Color::Gray;
+const COLOR_DIALOG_TEXT: ff::Color = ff::Color::DarkGray;
 
 pub fn render_room(state: &mut State) {
     if state.script_state.end && state.dialog.n_pages() == 0 {
@@ -26,12 +30,12 @@ pub fn render_room(state: &mut State) {
 }
 
 fn draw_end(state: &State) {
-    ff::clear_screen(ff::Color::Black);
+    ff::clear_screen(COLOR_DIALOG_BOX);
     let font = state.font.as_font();
     let x = (ff::WIDTH - i32::from(font.char_width()) * 7) / 2;
     let y = (ff::HEIGHT + i32::from(font.char_height())) / 2;
     let point = ff::Point::new(x, y);
-    ff::draw_text("THE END", &font, point, ff::Color::Purple);
+    ff::draw_text("THE END", &font, point, COLOR_DIALOG_TEXT);
 }
 
 fn set_palette(state: &State) {
@@ -50,6 +54,9 @@ fn set_palette(state: &State) {
         };
         ff::set_color(idx, rgb);
     }
+
+    ff::set_color(COLOR_DIALOG_BOX, RGB::new(0x21, 0x1e, 0x20));
+    ff::set_color(COLOR_DIALOG_TEXT, RGB::new(0xe9, 0xef, 0xec));
 }
 
 fn draw_tiles(state: &State) {
@@ -72,13 +79,12 @@ fn draw_tiles(state: &State) {
 }
 
 fn clear_room(state: &State) {
-    let color = ff::Color::Black;
     if state.dialog.n_pages() == 0 {
-        ff::clear_screen(color);
+        ff::clear_screen(COLOR_BG);
     }
     let point = ff::Point::new(OFFSET_X, OFFSET_Y);
     let size = ff::Size::new(TILES_X * 8, TILES_Y * 8);
-    ff::draw_rect(point, size, ff::Style::solid(color));
+    ff::draw_rect(point, size, ff::Style::solid(COLOR_BG));
 }
 
 fn draw_items(state: &State) {
@@ -156,14 +162,12 @@ fn draw_dialog(state: &mut State) {
     let point = ff::Point::new(0, y);
     if !page.started {
         page.started = true;
-        let color = ff::Color::Black;
         if center {
-            ff::clear_screen(color);
-        } else {
-            let size = ff::Size::new(ff::WIDTH, ff::HEIGHT - point.y);
-            let style = ff::Style::solid(color);
-            ff::draw_rect(point, size, style);
+            ff::clear_screen(COLOR_BG);
         }
+        let size = ff::Size::new(ff::WIDTH, 32);
+        let style = ff::Style::solid(COLOR_DIALOG_BOX);
+        ff::draw_rect(point, size, style);
     }
 
     let font = state.font.as_font();
@@ -177,7 +181,7 @@ fn draw_dialog(state: &mut State) {
                 }
                 word.rendered = true;
                 let word_point = point + word.point;
-                ff::draw_text(text, &font, word_point, ff::Color::Purple);
+                ff::draw_text(text, &font, word_point, COLOR_DIALOG_TEXT);
                 if !page.fast {
                     return;
                 }
@@ -200,7 +204,7 @@ fn draw_dialog_arrow(state: &State) {
         ff::Point::new(229, y),
         ff::Point::new(229 + 8, y),
         ff::Point::new(229 + 4, y + 4),
-        ff::Style::solid(ff::Color::Red),
+        ff::Style::solid(COLOR_DIALOG_TEXT),
     );
 }
 

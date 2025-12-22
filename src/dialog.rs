@@ -23,7 +23,12 @@ impl Dialog {
     }
 
     pub fn next_page(&mut self) {
-        if !self.pages.is_empty() {
+        let Some(page) = self.pages.first_mut() else {
+            return;
+        };
+        if !page.fast && !page.all_rendered() {
+            page.fast = true;
+        } else {
             self.pages.remove(0);
         }
     }
@@ -31,7 +36,25 @@ impl Dialog {
 
 pub struct Page {
     pub lines: Vec<Line>,
+    /// If the renderer started to render the page on the screen.
+    ///
+    /// When false, the renderer will first clear the region to hide the old page.
     pub started: bool,
+    /// If true, stop the words animation and render the whole page in one go.
+    pub fast: bool,
+}
+
+impl Page {
+    pub fn all_rendered(&self) -> bool {
+        for line in &self.lines {
+            for word in &line.words {
+                if !word.rendered {
+                    return false;
+                }
+            }
+        }
+        true
+    }
 }
 
 pub struct Line {
@@ -111,6 +134,7 @@ impl DialogBuilder {
             self.pages.push(Page {
                 lines: self.lines,
                 started: false,
+                fast: false,
             });
         }
         Dialog { pages: self.pages }
@@ -129,6 +153,7 @@ impl DialogBuilder {
         self.pages.push(Page {
             lines: self.lines,
             started: false,
+            fast: false,
         });
         self.lines = Vec::new();
         self

@@ -128,14 +128,13 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
 fn draw_dialog(state: &mut State) {
     const MARGIN_X: i32 = 2;
 
-    // Slow down word rendering.
-    if !state.frame.is_multiple_of(3) {
-        return;
-    }
-
     let Some(page) = state.dialog.current_page() else {
         return;
     };
+    // Slow down word rendering.
+    if !page.fast && !state.frame.is_multiple_of(3) {
+        return;
+    }
 
     let point = ff::Point::new(0, OFFSET_Y + 128);
     if !page.started {
@@ -158,7 +157,9 @@ fn draw_dialog(state: &mut State) {
                     word.rendered = true;
                     point.x = word.point.x;
                     ff::draw_text(text, &font, point, ff::Color::White);
-                    return;
+                    if !page.fast {
+                        return;
+                    }
                 }
                 Sprite(_) => {}
                 Tile(_) => {}

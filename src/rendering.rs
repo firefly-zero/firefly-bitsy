@@ -1,5 +1,4 @@
 use crate::*;
-use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use bitsy_reparser as bs;
@@ -131,19 +130,20 @@ fn draw_dialog(state: &State) {
     let font = state.font.as_font();
     let mut point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
     for line in &page.lines {
-        let mut line_text = String::new();
         for word in &line.words {
             use bitsy_script::Word::*;
-            match word {
-                Text(text, _) => line_text.push_str(text),
-                Sprite(_) => line_text.push(' '),
-                Tile(_) => line_text.push(' '),
-                Item(_) => line_text.push(' '),
-                LineBreak => line_text.push('\n'),
-                PageBreak => line_text.push('\n'),
-            }
+            match &word.word {
+                Text(text, _) => {
+                    point.x = word.point.x;
+                    ff::draw_text(text, &font, point, ff::Color::White);
+                }
+                Sprite(_) => {}
+                Tile(_) => {}
+                Item(_) => {}
+                LineBreak => {}
+                PageBreak => {}
+            };
         }
-        ff::draw_text(&line_text, &font, point, ff::Color::White);
         point.y += 8;
     }
     // for line in state.dialog.iter().take(3) {

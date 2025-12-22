@@ -1,6 +1,7 @@
 use crate::*;
 use alloc::vec::Vec;
 use bitsy_script as bs;
+use firefly_rust as ff;
 
 #[derive(Default)]
 pub struct Dialog {
@@ -33,14 +34,19 @@ pub struct Page {
 }
 
 pub struct Line {
-    pub words: Vec<bs::Word>,
+    pub words: Vec<Word>,
+}
+
+pub struct Word {
+    pub word: bs::Word,
+    pub point: ff::Point,
 }
 
 #[derive(Default)]
 struct DialogBuilder {
     pages: Vec<Page>,
     lines: Vec<Line>,
-    words: Vec<bs::Word>,
+    words: Vec<Word>,
     line_width: usize,
 }
 
@@ -86,8 +92,9 @@ impl DialogBuilder {
                             self = self.flush_page();
                         }
                     }
+                    let point = ff::Point::new(self.line_width as i32, 0);
+                    self.words.push(Word { word: w, point });
                     self.line_width += word_width;
-                    self.words.push(w)
                 }
             }
         }

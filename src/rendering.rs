@@ -190,16 +190,17 @@ fn draw_dialog(state: &mut State) {
         };
     }
     if state.dialog.n_pages() > 1 {
-        draw_dialog_arrow()
+        draw_dialog_arrow(state)
     }
 }
 
-fn draw_dialog_arrow() {
+fn draw_dialog_arrow(state: &State) {
+    let y = if state.dialog.center { 89 } else { 153 };
     ff::draw_triangle(
-        ff::Point::new(229, 153),
-        ff::Point::new(229 + 8, 153),
-        ff::Point::new(229 + 4, 153 + 4),
-        ff::Style::solid(ff::Color::LightGray),
+        ff::Point::new(229, y),
+        ff::Point::new(229 + 8, y),
+        ff::Point::new(229 + 4, y + 4),
+        ff::Style::solid(ff::Color::Red),
     );
 }
 

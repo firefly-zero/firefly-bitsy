@@ -14,12 +14,14 @@ pub fn render_room(state: &mut State) {
         draw_end(state);
         return;
     }
-    clear_room(state);
-    set_palette(state);
-    draw_tiles(state);
-    draw_items(state);
-    draw_sprites(state);
-    draw_avatar(state);
+    if !state.script_state.end {
+        clear_room(state);
+        set_palette(state);
+        draw_tiles(state);
+        draw_items(state);
+        draw_sprites(state);
+        draw_avatar(state);
+    }
     draw_dialog(state);
 }
 
@@ -141,6 +143,7 @@ fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
 fn draw_dialog(state: &mut State) {
     const MARGIN_X: i32 = 2;
 
+    let center = state.dialog.center;
     let Some(page) = state.dialog.current_page() else {
         return;
     };
@@ -149,12 +152,18 @@ fn draw_dialog(state: &mut State) {
         return;
     }
 
-    let point = ff::Point::new(0, OFFSET_Y + 128);
+    let y = if center { 128 / 2 } else { OFFSET_Y + 128 };
+    let point = ff::Point::new(0, y);
     if !page.started {
         page.started = true;
-        let size = ff::Size::new(ff::WIDTH, ff::HEIGHT - point.y);
-        let style = ff::Style::solid(ff::Color::DarkGray);
-        ff::draw_rect(point, size, style);
+        let color = ff::Color::Black;
+        if center {
+            ff::clear_screen(color);
+        } else {
+            let size = ff::Size::new(ff::WIDTH, ff::HEIGHT - point.y);
+            let style = ff::Style::solid(color);
+            ff::draw_rect(point, size, style);
+        }
     }
 
     let font = state.font.as_font();
@@ -168,7 +177,7 @@ fn draw_dialog(state: &mut State) {
                 }
                 word.rendered = true;
                 let word_point = point + word.point;
-                ff::draw_text(text, &font, word_point, ff::Color::White);
+                ff::draw_text(text, &font, word_point, ff::Color::Purple);
                 if !page.fast {
                     return;
                 }
@@ -180,10 +189,6 @@ fn draw_dialog(state: &mut State) {
             PageBreak => {}
         };
     }
-    // for line in state.dialog.iter().take(3) {
-    //     ff::draw_text(line, &font, point, ff::Color::White);
-    //     point.y += 8;
-    // }
     if state.dialog.n_pages() > 1 {
         draw_dialog_arrow()
     }

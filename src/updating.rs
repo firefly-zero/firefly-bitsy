@@ -156,14 +156,15 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
     let Some(dialog) = state.game.dialogues.iter().find(|d| d.id == dialog_id) else {
         return;
     };
-    show_dialog_text(state, &dialog.contents.clone())
+    show_dialog_text(state, &dialog.contents.clone());
 }
 
 fn show_ending(state: &mut State, ending_id: &str) {
     let Some(ending) = state.game.endings.iter().find(|d| d.id == ending_id) else {
         return;
     };
-    show_dialog_text(state, &ending.dialogue.clone())
+    show_dialog_text(state, &ending.dialogue.clone());
+    state.dialog.center = true;
 }
 
 fn show_dialog_text(state: &mut State, dialog: &str) {

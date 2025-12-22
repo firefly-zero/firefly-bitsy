@@ -6,6 +6,7 @@ use firefly_rust as ff;
 #[derive(Default)]
 pub struct Dialog {
     pub pages: Vec<Page>,
+    pub center: bool,
 }
 
 impl Dialog {
@@ -135,7 +136,10 @@ impl DialogBuilder {
                 fast: false,
             });
         }
-        Dialog { pages: self.pages }
+        Dialog {
+            pages: self.pages,
+            center: false,
+        }
     }
 
     fn flush_line(mut self) -> Self {

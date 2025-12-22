@@ -11,6 +11,7 @@ pub struct State {
     pub game: bs::Game,
     pub room: usize,
     pub frame: u8,
+    pub room_dirty: bool,
     pub held_for: u32,
     /// Input on the previous frame.
     pub dpad: ff::DPad,
@@ -48,12 +49,16 @@ impl State {
             self.script_state.palette = pal.clone();
         }
         self.reload_tiles();
+        self.room_dirty = true;
     }
 
     fn reload_tiles(&mut self) {
         let room = &self.game.rooms[self.room];
         self.tiles.clear();
         for (tile_id, i) in room.tiles.iter().zip(0u8..) {
+            if tile_id == "0" {
+                continue;
+            }
             let Some(tile) = &self.game.get_tile(tile_id) else {
                 continue;
             };
@@ -102,6 +107,7 @@ pub fn load_state() {
         room: 0,
         frame: 0,
         held_for: 0,
+        room_dirty: true,
         dpad: ff::DPad::default(),
         dialog,
         tiles: Vec::new(),

@@ -18,7 +18,8 @@ pub fn render_room(state: &mut State) {
         draw_end(state);
         return;
     }
-    if !state.script_state.end {
+    if should_render_room(state) {
+        state.room_dirty = false;
         clear_room(state);
         set_palette(state);
         draw_tiles(state);
@@ -29,6 +30,19 @@ pub fn render_room(state: &mut State) {
     draw_dialog(state);
 }
 
+/// Check if the room should be re-drawn on this frame.
+fn should_render_room(state: &State) -> bool {
+    if state.script_state.end {
+        return false;
+    }
+    let animation_frame = state.frame.is_multiple_of(12);
+    if animation_frame {
+        return true;
+    }
+    state.room_dirty
+}
+
+/// Render "THE END" screen.
 fn draw_end(state: &State) {
     ff::clear_screen(COLOR_DIALOG_BOX);
     let font = state.font.as_font();

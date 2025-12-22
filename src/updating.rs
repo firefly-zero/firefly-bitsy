@@ -76,6 +76,7 @@ fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
     let y = old_pos.y.saturating_add_signed(dy).min(TILES_Y - 1);
     let new_pos = bs::Position { x, y };
 
+    state.room_dirty = true;
     if let Some(item) = pop_item_at(state, new_pos) {
         let dialog_id = match &item.dialogue_id {
             Some(id) => id,

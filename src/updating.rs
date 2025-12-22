@@ -139,7 +139,7 @@ fn show_dialog(state: &mut State, dialog_id: &str) {
 
 fn get_avatar(state: &mut State) -> &mut bs::Sprite {
     for sprite in &mut state.game.sprites {
-        if &sprite.id == "A" {
+        if sprite.id == state.script_state.avatar {
             return sprite;
         }
     }

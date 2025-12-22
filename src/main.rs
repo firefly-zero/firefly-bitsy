@@ -10,6 +10,7 @@ use crate::dialog::*;
 use crate::rendering::*;
 use crate::updating::*;
 
+use alloc::string::ToString;
 use alloc::vec::Vec;
 use bitsy_reparser as bs;
 use core::cell::OnceCell;
@@ -52,7 +53,13 @@ extern "C" fn boot() {
     let Some(font) = ff::load_file_buf("font") else {
         panic!("font not found")
     };
+
     let mut script_state = bitsy_script::State::default();
+    for var in &game.variables {
+        let val = bitsy_script::Val::new(&var.initial_value);
+        script_state.vars.set(var.id.to_string(), val);
+    }
+
     let char_width = font.as_font().char_width();
     let dialog = Dialog::new(&game.name, &mut script_state, char_width);
     let state = State {

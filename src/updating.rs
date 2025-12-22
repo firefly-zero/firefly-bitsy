@@ -152,6 +152,9 @@ pub fn set_room(state: &mut State, room_id: &str) {
     state.room = room_idx;
 
     let room = &state.game.rooms[room_idx];
+    if let Some(pal) = &room.palette_id {
+        state.script_state.palette = pal.clone();
+    }
     state.tiles.clear();
     for (tile_id, i) in room.tiles.iter().zip(0u8..) {
         let Some(tile) = &state.game.get_tile(tile_id) else {
@@ -205,6 +208,7 @@ fn pop_item_at(state: &mut State, pos: bs::Position) -> Option<&bs::Item> {
     let idx = get_item_idx_at(state, pos)?;
     let room = &mut state.game.rooms[state.room];
     let item_ref = room.items.remove(idx);
+    state.script_state.inventory.put(item_ref.id.clone());
     state.game.get_item(&item_ref.id)
 }
 

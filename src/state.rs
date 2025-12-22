@@ -1,5 +1,5 @@
 use crate::*;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use bitsy_reparser as bs;
 use core::cell::OnceCell;
@@ -33,6 +33,33 @@ impl State {
     pub fn set_pos(&mut self, pos: bs::Position) {
         self.script_state.pos_x = pos.x;
         self.script_state.pos_y = pos.y;
+    }
+
+    pub fn set_room(&mut self, room_id: String) {
+        let maybe_room = self.game.rooms.iter().position(|room| room.id == room_id);
+        let Some(room_idx) = maybe_room else {
+            return;
+        };
+        self.room = room_idx;
+        self.script_state.room = room_id;
+
+        let room = &self.game.rooms[room_idx];
+        if let Some(pal) = &room.palette_id {
+            self.script_state.palette = pal.clone();
+        }
+        self.reload_tiles();
+    }
+
+    fn reload_tiles(&mut self) {
+        let room = &self.game.rooms[self.room];
+        self.tiles.clear();
+        for (tile_id, i) in room.tiles.iter().zip(0u8..) {
+            let Some(tile) = &self.game.get_tile(tile_id) else {
+                continue;
+            };
+            let tile = (*tile).clone();
+            self.tiles.push((i, tile));
+        }
     }
 }
 
@@ -96,5 +123,5 @@ fn set_starting_room() {
     let Some(room_id) = &avatar.room_id else {
         return;
     };
-    set_room(state, &room_id.clone());
+    state.set_room(room_id.clone());
 }

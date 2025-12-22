@@ -111,7 +111,7 @@ fn leave_room(state: &mut State, new_pos: bs::Position) -> bool {
             show_dialog(state, &dialog_id);
         }
         state.set_pos(pos);
-        set_room(state, &room_id);
+        state.set_room(room_id);
         return true;
     }
     false
@@ -144,27 +144,6 @@ fn get_avatar(state: &mut State) -> &mut bs::Sprite {
         }
     }
     panic!("avatar not found")
-}
-
-pub fn set_room(state: &mut State, room_id: &str) {
-    let maybe_room = state.game.rooms.iter().position(|room| room.id == room_id);
-    let Some(room_idx) = maybe_room else {
-        return;
-    };
-    state.room = room_idx;
-
-    let room = &state.game.rooms[room_idx];
-    if let Some(pal) = &room.palette_id {
-        state.script_state.palette = pal.clone();
-    }
-    state.tiles.clear();
-    for (tile_id, i) in room.tiles.iter().zip(0u8..) {
-        let Some(tile) = &state.game.get_tile(tile_id) else {
-            continue;
-        };
-        let tile = (*tile).clone();
-        state.tiles.push((i, tile));
-    }
 }
 
 fn has_wall_at(state: &State, pos: bs::Position) -> bool {

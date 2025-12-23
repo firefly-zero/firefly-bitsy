@@ -13,6 +13,11 @@ const COLOR_DIALOG_BOX: ff::Color = ff::Color::Gray;
 const COLOR_DIALOG_TEXT: ff::Color = ff::Color::DarkGray;
 
 pub fn render_room(state: &mut State) {
+    if !state.segments.is_empty() {
+        draw_progress_bar(state);
+        return;
+    }
+
     if state.script_state.end && state.dialog.n_pages() == 0 {
         draw_end(state);
         return;
@@ -39,6 +44,15 @@ fn should_render_room(state: &State) -> bool {
         return true;
     }
     state.room_dirty
+}
+
+fn draw_progress_bar(state: &State) {
+    ff::clear_screen(ff::Color::Black);
+    let font = state.font.as_font();
+    let x = (ff::WIDTH - i32::from(font.char_width()) * 10) / 2;
+    let y = (ff::HEIGHT + i32::from(font.char_height())) / 2;
+    let point = ff::Point::new(x, y);
+    ff::draw_text("LOADING...", &font, point, ff::Color::White);
 }
 
 /// Render "THE END" screen.

@@ -1,4 +1,5 @@
 use crate::*;
+use alloc::string::ToString;
 use bitsy_file as bs;
 use firefly_rust as ff;
 
@@ -9,8 +10,61 @@ const TILES_Y: u8 = 16;
 
 pub fn update_state(state: &mut State) {
     state.frame = (state.frame + 1) % 60;
+    if !state.segments.is_empty() {
+        load_segments(state);
+        if state.segments.is_empty() {
+            init_game(state)
+        }
+        return;
+    }
     handle_pad(state);
     get_avatar(state).position = Some(state.pos());
+}
+
+fn load_segments(state: &mut State) {
+    for _ in 0..100 {
+        if let Some(segment) = state.segments.next() {
+            state.game.push_segment(segment);
+        } else {
+            break;
+        }
+    }
+}
+
+fn init_game(state: &mut State) {
+    for warning in &state.game.warnings {
+        ff::log_error(warning.as_str());
+    }
+    for var in &state.game.variables {
+        let val = bitsy_script::Val::new(&var.initial_value);
+        state.script_state.vars.set(var.id.to_string(), val);
+    }
+
+    let font = state.font.as_font();
+    let char_width = font.char_width();
+    let char_height = font.char_height();
+    state.dialog = Dialog::new(
+        &state.game.name,
+        &mut state.script_state,
+        char_width,
+        char_height,
+    );
+    set_starting_room(state)
+}
+
+fn set_starting_room(state: &mut State) {
+    let Some(avatar) = state.game.get_avatar() else {
+        return;
+    };
+    state.script_state.avatar = avatar.id.clone();
+    if let Some(pos) = avatar.position {
+        state.script_state.pos_x = pos.x;
+        state.script_state.pos_y = pos.y;
+    }
+    let Some(room_id) = &avatar.room_id else {
+        return;
+    };
+    state.set_room(room_id.clone());
 }
 
 fn handle_pad(state: &mut State) {

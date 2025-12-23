@@ -1,5 +1,5 @@
 use crate::*;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec::Vec;
 use core::cell::OnceCell;
 use firefly_rust as ff;
@@ -11,6 +11,8 @@ pub type Images = Vec<Image>;
 
 pub struct State {
     pub game: bitsy_file::Game,
+    pub segments: bitsy_file::Segments,
+    pub n_segments: usize,
     pub room: usize,
     pub frame: u8,
     pub room_dirty: bool,
@@ -92,54 +94,24 @@ pub fn get_state() -> &'static mut State {
 pub fn load_state() {
     let raw = ff::load_file_buf("main").unwrap();
     let raw = alloc::str::from_utf8(raw.data()).unwrap();
-    let game = match bitsy_file::Game::from(raw) {
-        Ok(v) => v,
-        Err(err) => panic!("{err}"),
-    };
-    for warning in &game.warnings {
-        ff::log_error(warning.as_str());
-    }
+    let segments = bitsy_file::Segments::new(raw);
+    let n_segments = segments.len();
     let Some(font) = ff::load_file_buf("font") else {
         panic!("font not found")
     };
-
-    let mut script_state = bitsy_script::State::default();
-    for var in &game.variables {
-        let val = bitsy_script::Val::new(&var.initial_value);
-        script_state.vars.set(var.id.to_string(), val);
-    }
-
-    let char_width = font.as_font().char_width();
-    let char_height = font.as_font().char_height();
-    let dialog = Dialog::new(&game.name, &mut script_state, char_width, char_height);
     let state = State {
-        game,
+        game: bitsy_file::Game::default(),
+        segments,
+        n_segments,
         font,
         room: 0,
         frame: 0,
         held_for: 0,
         room_dirty: true,
         dpad: ff::DPad::default(),
-        dialog,
+        dialog: Dialog::default(),
         tiles: Vec::new(),
-        script_state,
+        script_state: bitsy_script::State::default(),
     };
     set_state(state);
-    set_starting_room();
-}
-
-fn set_starting_room() {
-    let state = get_state();
-    let Some(avatar) = state.game.get_avatar() else {
-        return;
-    };
-    state.script_state.avatar = avatar.id.clone();
-    if let Some(pos) = avatar.position {
-        state.script_state.pos_x = pos.x;
-        state.script_state.pos_y = pos.y;
-    }
-    let Some(room_id) = &avatar.room_id else {
-        return;
-    };
-    state.set_room(room_id.clone());
 }

@@ -7,6 +7,7 @@ const TILES_X: u8 = 16;
 const TILES_Y: u8 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
+const ANIMATION_DELAY: u16 = 25;
 
 const COLOR_BG: ff::Color = ff::Color::new(1);
 const COLOR_RAINBOW: ff::Color = ff::Color::LightGreen;
@@ -53,7 +54,7 @@ fn should_render_room(state: &State) -> bool {
     if state.script_state.end {
         return false;
     }
-    let animation_frame = state.frame.is_multiple_of(12);
+    let animation_frame = state.frame.is_multiple_of(ANIMATION_DELAY);
     if animation_frame {
         return true;
     }
@@ -229,6 +230,7 @@ fn draw_dialog(state: &mut State) {
                 }
                 let mut word_point = point + word.point;
                 let mut color = COLOR_DIALOG_TEXT;
+                let mut wave = false;
 
                 // If the text effect moves the word around,
                 // hide the old word first.
@@ -247,7 +249,7 @@ fn draw_dialog(state: &mut State) {
                 {
                     match effect {
                         None => {}
-                        Wavy => {}
+                        Wavy => wave = true,
                         Shaky => {
                             let rand = ff::get_random();
                             let shift_x = rand % 2 - 1;
@@ -260,7 +262,17 @@ fn draw_dialog(state: &mut State) {
                     }
                 }
 
-                ff::draw_text(text, &font, word_point, color);
+                if wave {
+                    for i in 0..text.len() {
+                        let sub = &text[i..=i];
+                        let shift_x = (i * usize::from(font.char_width())) as i32;
+                        let shift_y = ((state.frame / ANIMATION_DELAY + i as u16) % 2) as i32;
+                        let point = word_point + ff::Point::new(shift_x, shift_y);
+                        ff::draw_text(sub, &font, point, color);
+                    }
+                } else {
+                    ff::draw_text(text, &font, word_point, color);
+                }
 
                 let was_rendered = word.rendered;
                 word.rendered = true;
@@ -325,11 +337,11 @@ fn tile_point(x: u8, y: u8) -> ff::Point {
 }
 
 fn pick_frame(frames: &[bitsy_file::Image], frame: u16) -> &bitsy_file::Image {
-    let frame = usize::from(frame / 12);
+    let frame = usize::from(frame / ANIMATION_DELAY);
     &frames[frame % frames.len()]
 }
 
 fn pick_raw_frame(frames: &[Image], frame: u16) -> &Image {
-    let frame = usize::from(frame / 12);
+    let frame = usize::from(frame / ANIMATION_DELAY);
     &frames[frame % frames.len()]
 }

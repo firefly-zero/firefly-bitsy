@@ -9,8 +9,22 @@ const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
 
 const COLOR_BG: ff::Color = ff::Color::new(1);
+const COLOR_RAINBOW: ff::Color = ff::Color::LightGreen;
 const COLOR_DIALOG_BOX: ff::Color = ff::Color::Gray;
 const COLOR_DIALOG_TEXT: ff::Color = ff::Color::DarkGray;
+
+const RAINBOW_COLORS: &[ff::RGB] = &[
+    ff::RGB::new(255, 0, 0),   // red
+    ff::RGB::new(255, 217, 0), // yellow
+    ff::RGB::new(78, 255, 0),  // green
+    ff::RGB::new(0, 255, 125), // also green
+    ff::RGB::new(0, 192, 255), // sky blue
+    ff::RGB::new(0, 18, 255),  // blue
+    ff::RGB::new(136, 0, 255), // purple
+    ff::RGB::new(255, 0, 242), // pink
+    ff::RGB::new(255, 0, 138), // also pink
+    ff::RGB::new(255, 0, 61),  // also red
+];
 
 pub fn render_room(state: &mut State) {
     if !state.segments.is_empty() {
@@ -157,7 +171,7 @@ fn draw_avatar(state: &State) {
     }
 }
 
-fn draw_sprite(sprite: &bitsy_file::Sprite, frame: u8) {
+fn draw_sprite(sprite: &bitsy_file::Sprite, frame: u16) {
     let frame = pick_frame(&sprite.animation_frames, frame);
     let Some(pos) = &sprite.position else {
         return;
@@ -195,6 +209,11 @@ fn draw_dialog(state: &mut State) {
         let style = ff::Style::solid(COLOR_DIALOG_BOX);
         ff::draw_rect(point, size, style);
     }
+
+    // Cycle the RGB representation of the color representing the rainbow text.
+    let idx = usize::from((state.frame) / 6) % RAINBOW_COLORS.len();
+    let rainbow_color = RAINBOW_COLORS[idx];
+    ff::set_color(COLOR_RAINBOW, rainbow_color);
 
     let font = state.font.as_font();
     let point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
@@ -236,7 +255,7 @@ fn draw_dialog(state: &mut State) {
                             word_point.x += shift_x as i32;
                             word_point.y += shift_y as i32;
                         }
-                        Rainbow => {}
+                        Rainbow => color = COLOR_RAINBOW,
                         Color(c) => color = ff::Color::new(*c),
                     }
                 }
@@ -305,12 +324,12 @@ fn tile_point(x: u8, y: u8) -> ff::Point {
     ff::Point::new(x, y)
 }
 
-fn pick_frame(frames: &[bitsy_file::Image], frame: u8) -> &bitsy_file::Image {
+fn pick_frame(frames: &[bitsy_file::Image], frame: u16) -> &bitsy_file::Image {
     let frame = usize::from(frame / 12);
     &frames[frame % frames.len()]
 }
 
-fn pick_raw_frame(frames: &[Image], frame: u8) -> &Image {
+fn pick_raw_frame(frames: &[Image], frame: u16) -> &Image {
     let frame = usize::from(frame / 12);
     &frames[frame % frames.len()]
 }

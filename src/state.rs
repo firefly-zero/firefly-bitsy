@@ -14,7 +14,7 @@ pub struct State {
     pub segments: bitsy_file::Segments,
     pub n_segments: usize,
     pub room: usize,
-    pub frame: u8,
+    pub frame: u16,
     pub room_dirty: bool,
     pub held_for: u32,
     /// Input on the previous frame.

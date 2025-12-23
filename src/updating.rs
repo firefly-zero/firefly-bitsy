@@ -127,20 +127,17 @@ fn read_dpad() -> firefly_rust::DPad {
 }
 
 fn to_dpad(pad: ff::Pad) -> ff::DPad {
-    let a = pad.azimuth().to_degrees();
-    ff::log_debug(&alloc::format!("{a}"));
     let mut dpad = ff::DPad::default();
-    if pad.radius() < 0.2 {
-        return dpad;
-    }
-    if (45_f32..135_f32).contains(&a) {
+    let x = pad.x;
+    let y = pad.y;
+    if y > 100 && y > x.abs() {
         dpad.up = true
-    } else if (135_f32..180_f32).contains(&a) || (-180_f32..-135_f32).contains(&a) {
-        dpad.left = true
-    } else if (-135_f32..-45_f32).contains(&a) {
+    } else if y < -100 && -y > x.abs() {
         dpad.down = true
-    } else {
+    } else if x > 100 && x > y.abs() {
         dpad.right = true
+    } else if x < -100 && -x > y.abs() {
+        dpad.left = true
     }
     dpad
 }

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bitsy-reparser = { path = "/home/gram/my/bitsy-nostd-parser" }
+bitsy-file = { path = "/home/gram/my/bitsy-nostd-parser" }
 firefly-rust = { path = "../firefly-rust", features = ["alloc", "talc"] }
 bitsy-script = { path = "/home/gram/my/bitsy-script" }
 

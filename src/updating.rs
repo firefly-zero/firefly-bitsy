@@ -1,5 +1,5 @@
 use crate::*;
-use bitsy_reparser as bs;
+use bitsy_file as bs;
 use firefly_rust as ff;
 
 /// The number of tiles in a row.

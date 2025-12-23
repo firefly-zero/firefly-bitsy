@@ -1,7 +1,6 @@
 use crate::*;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use bitsy_reparser as bs;
 use core::cell::OnceCell;
 use firefly_rust as ff;
 
@@ -11,7 +10,7 @@ pub type Image = Vec<u8>;
 pub type Images = Vec<Image>;
 
 pub struct State {
-    pub game: bs::Game,
+    pub game: bitsy_file::Game,
     pub room: usize,
     pub frame: u8,
     pub room_dirty: bool,
@@ -27,14 +26,14 @@ pub struct State {
 }
 
 impl State {
-    pub fn pos(&self) -> bs::Position {
-        bs::Position {
+    pub fn pos(&self) -> bitsy_file::Position {
+        bitsy_file::Position {
             x: self.script_state.pos_x,
             y: self.script_state.pos_y,
         }
     }
 
-    pub fn set_pos(&mut self, pos: bs::Position) {
+    pub fn set_pos(&mut self, pos: bitsy_file::Position) {
         self.script_state.pos_x = pos.x;
         self.script_state.pos_y = pos.y;
     }
@@ -93,11 +92,11 @@ pub fn get_state() -> &'static mut State {
 pub fn load_state() {
     let raw = ff::load_file_buf("main").unwrap();
     let raw = alloc::str::from_utf8(raw.data()).unwrap();
-    let (game, warnings) = match bs::Game::from(raw) {
+    let game = match bitsy_file::Game::from(raw) {
         Ok(v) => v,
         Err(err) => panic!("{err}"),
     };
-    for warning in warnings {
+    for warning in &game.warnings {
         ff::log_error(warning.as_str());
     }
     let Some(font) = ff::load_file_buf("font") else {

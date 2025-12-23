@@ -1,7 +1,6 @@
 use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;
-use bitsy_reparser as bs;
 use firefly_rust::{self as ff, RGB};
 
 const TILES_X: u8 = 16;
@@ -137,7 +136,7 @@ fn draw_avatar(state: &State) {
     }
 }
 
-fn draw_sprite(sprite: &bs::Sprite, frame: u8) {
+fn draw_sprite(sprite: &bitsy_file::Sprite, frame: u8) {
     let frame = pick_frame(&sprite.animation_frames, frame);
     let Some(pos) = &sprite.position else {
         return;
@@ -214,7 +213,7 @@ fn draw_dialog_arrow(state: &State) {
     );
 }
 
-pub fn parse_image(image: &bs::Image, primary: u8) -> Vec<u8> {
+pub fn parse_image(image: &bitsy_file::Image, primary: u8) -> Vec<u8> {
     let pixels = &image.pixels;
     let is_hd = pixels.len() == 256;
     let width = if is_hd { 16 } else { 8 };
@@ -249,7 +248,7 @@ fn tile_point(x: u8, y: u8) -> ff::Point {
     ff::Point::new(x, y)
 }
 
-fn pick_frame(frames: &[bs::Image], frame: u8) -> &bs::Image {
+fn pick_frame(frames: &[bitsy_file::Image], frame: u8) -> &bitsy_file::Image {
     let frame = usize::from(frame / 12);
     &frames[frame % frames.len()]
 }

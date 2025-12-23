@@ -201,13 +201,22 @@ fn draw_dialog(state: &mut State) {
     for word in &mut page.words {
         use bitsy_script::Word::*;
         match &word.word {
-            Text(text, _) => {
+            Text(text, effect) => {
                 if word.rendered {
                     continue;
                 }
                 word.rendered = true;
                 let word_point = point + word.point;
-                ff::draw_text(text, &font, word_point, COLOR_DIALOG_TEXT);
+                let mut color = COLOR_DIALOG_TEXT;
+                use bitsy_script::TextEffect::*;
+                match effect {
+                    None => {}
+                    Wavy => {}
+                    Shaky => {}
+                    Rainbow => {}
+                    Color(c) => color = ff::Color::new(*c),
+                }
+                ff::draw_text(text, &font, word_point, color);
                 if !page.fast {
                     return;
                 }
@@ -215,8 +224,7 @@ fn draw_dialog(state: &mut State) {
             Sprite(_) => {}
             Tile(_) => {}
             Item(_) => {}
-            LineBreak => {}
-            PageBreak => {}
+            LineBreak | PageBreak => {}
         };
     }
     if state.dialog.n_pages() > 1 {

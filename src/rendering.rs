@@ -202,22 +202,50 @@ fn draw_dialog(state: &mut State) {
         use bitsy_script::Word::*;
         match &word.word {
             Text(text, effect) => {
-                if word.rendered {
+                use bitsy_script::TextEffect::*;
+                let apply_effect = state.frame.is_multiple_of(3);
+                let stable = matches!(effect, None | Color(_));
+                if word.rendered && (!apply_effect || stable) {
                     continue;
                 }
-                word.rendered = true;
-                let word_point = point + word.point;
+                let mut word_point = point + word.point;
                 let mut color = COLOR_DIALOG_TEXT;
-                use bitsy_script::TextEffect::*;
-                match effect {
-                    None => {}
-                    Wavy => {}
-                    Shaky => {}
-                    Rainbow => {}
-                    Color(c) => color = ff::Color::new(*c),
+
+                // If the text effect moves the word around,
+                // hide the old word first.
+                let moving = matches!(effect, Wavy | Shaky);
+                if moving {
+                    let width = font.line_width(text) as i32;
+                    let height = i32::from(font.char_height());
+                    ff::draw_rect(
+                        ff::Point::new(word_point.x - 1, word_point.y - 7),
+                        ff::Size::new(width, height + 1),
+                        ff::Style::solid(COLOR_DIALOG_BOX),
+                    );
                 }
+
+                // Change text parameters to apply the text effect.
+                {
+                    match effect {
+                        None => {}
+                        Wavy => {}
+                        Shaky => {
+                            let rand = ff::get_random();
+                            let shift_x = rand % 2 - 2;
+                            let shift_y = (rand >> 8) % 2 - 2;
+                            word_point.x += shift_x as i32;
+                            word_point.y += shift_y as i32;
+                        }
+                        Rainbow => {}
+                        Color(c) => color = ff::Color::new(*c),
+                    }
+                }
+
                 ff::draw_text(text, &font, word_point, color);
-                if !page.fast {
+
+                let was_rendered = word.rendered;
+                word.rendered = true;
+                if !was_rendered && !page.fast {
                     return;
                 }
             }

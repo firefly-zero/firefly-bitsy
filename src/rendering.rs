@@ -47,12 +47,19 @@ fn should_render_room(state: &State) -> bool {
 }
 
 fn draw_progress_bar(state: &State) {
+    const TEXT: &str = "LOADING...";
     ff::clear_screen(ff::Color::Black);
     let font = state.font.as_font();
-    let x = (ff::WIDTH - i32::from(font.char_width()) * 10) / 2;
+    let x = (ff::WIDTH - i32::from(font.char_width()) * TEXT.len() as i32) / 2;
     let y = (ff::HEIGHT + i32::from(font.char_height())) / 2;
     let point = ff::Point::new(x, y);
-    ff::draw_text("LOADING...", &font, point, ff::Color::White);
+    ff::draw_text(TEXT, &font, point, ff::Color::Gray);
+
+    if state.n_segments != 0 {
+        let segments_left = state.n_segments - state.segments.len();
+        let progress = TEXT.len() * segments_left / state.n_segments;
+        ff::draw_text(&TEXT[..progress], &font, point, ff::Color::White);
+    }
 }
 
 /// Render "THE END" screen.

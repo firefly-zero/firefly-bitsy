@@ -8,7 +8,7 @@ const TILES_Y: u8 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
 
-const COLOR_BG: ff::Color = ff::Color::Black;
+const COLOR_BG: ff::Color = ff::Color::new(0);
 const COLOR_DIALOG_BOX: ff::Color = ff::Color::Gray;
 const COLOR_DIALOG_TEXT: ff::Color = ff::Color::DarkGray;
 

@@ -14,7 +14,9 @@ version = "0.711.0"
 
 [[package]]
 name = "bitsy-script"
-version = "0.1.0"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8f15d1c67952b4728795c25a05c4fe7e21e86f992b4bbf16cb274b0bdf2d754"
 dependencies = [
  "hashbrown",
 ]
@@ -36,7 +38,9 @@ dependencies = [
 
 [[package]]
 name = "firefly-rust"
-version = "0.9.3"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b354c61f206bb4d0b3569a5c194003c2e6b7549aa33288c671509c32ba1676b3"
 dependencies = [
  "talc",
 ]

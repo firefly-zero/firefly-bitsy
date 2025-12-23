@@ -8,7 +8,7 @@ const TILES_Y: u8 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
 
-const COLOR_BG: ff::Color = ff::Color::new(0);
+const COLOR_BG: ff::Color = ff::Color::new(1);
 const COLOR_DIALOG_BOX: ff::Color = ff::Color::Gray;
 const COLOR_DIALOG_TEXT: ff::Color = ff::Color::DarkGray;
 
@@ -218,7 +218,7 @@ fn draw_dialog(state: &mut State) {
                     let width = font.line_width(text) as i32;
                     let height = i32::from(font.char_height());
                     ff::draw_rect(
-                        ff::Point::new(word_point.x - 1, word_point.y - 7),
+                        ff::Point::new(word_point.x, word_point.y - 6),
                         ff::Size::new(width, height + 1),
                         ff::Style::solid(COLOR_DIALOG_BOX),
                     );
@@ -231,8 +231,8 @@ fn draw_dialog(state: &mut State) {
                         Wavy => {}
                         Shaky => {
                             let rand = ff::get_random();
-                            let shift_x = rand % 2 - 2;
-                            let shift_y = (rand >> 8) % 2 - 2;
+                            let shift_x = rand % 2 - 1;
+                            let shift_y = (rand >> 8) % 2 - 1;
                             word_point.x += shift_x as i32;
                             word_point.y += shift_y as i32;
                         }

@@ -9,9 +9,11 @@ const TILES_X: u8 = 16;
 const TILES_Y: u8 = 16;
 
 pub fn update_state(state: &mut State) {
-    state.frame = (state.frame + 1) % 60;
+    state.frame = state.frame.wrapping_add(1);
     if !state.segments.is_empty() {
-        load_segments(state);
+        if state.frame != 1 {
+            load_segments(state);
+        }
         if state.segments.is_empty() {
             init_game(state)
         }

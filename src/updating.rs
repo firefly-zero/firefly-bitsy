@@ -24,7 +24,7 @@ pub fn update_state(state: &mut State) {
 }
 
 fn load_segments(state: &mut State) {
-    for _ in 0..100 {
+    for _ in 0..20 {
         if let Some(segment) = state.segments.next() {
             state.game.push_segment(segment);
         } else {
@@ -107,7 +107,7 @@ fn handle_pad(state: &mut State) {
 
 fn read_dpad() -> firefly_rust::DPad {
     let mut dpad = match ff::read_pad(ff::Peer::COMBINED) {
-        Some(pad) => pad.as_dpad(),
+        Some(pad) => to_dpad(pad),
         None => ff::DPad::default(),
     };
     let buttons = ff::read_buttons(ff::Peer::COMBINED);
@@ -122,6 +122,25 @@ fn read_dpad() -> firefly_rust::DPad {
     }
     if buttons.n {
         dpad.up = true;
+    }
+    dpad
+}
+
+fn to_dpad(pad: ff::Pad) -> ff::DPad {
+    let a = pad.azimuth().to_degrees();
+    ff::log_debug(&alloc::format!("{a}"));
+    let mut dpad = ff::DPad::default();
+    if pad.radius() < 0.2 {
+        return dpad;
+    }
+    if (45_f32..135_f32).contains(&a) {
+        dpad.up = true
+    } else if (135_f32..180_f32).contains(&a) || (-180_f32..-135_f32).contains(&a) {
+        dpad.left = true
+    } else if (-135_f32..-45_f32).contains(&a) {
+        dpad.down = true
+    } else {
+        dpad.right = true
     }
     dpad
 }

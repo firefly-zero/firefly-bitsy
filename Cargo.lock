@@ -10,13 +10,15 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "bitsy-file"
-version = "0.711.0"
+version = "0.712.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e680ba9d5fec394636e58987f75d22c33f98618d6d0e2c85b4fc4e64257df585"
 
 [[package]]
 name = "bitsy-script"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8f15d1c67952b4728795c25a05c4fe7e21e86f992b4bbf16cb274b0bdf2d754"
+checksum = "6af61c94a83fd89031f0a39c2b2ae6df1a0456b27504fd5e82904cb66b46f30c"
 dependencies = [
  "hashbrown",
 ]

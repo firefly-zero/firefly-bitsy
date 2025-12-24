@@ -28,6 +28,10 @@ const RAINBOW_COLORS: &[ff::RGB] = &[
 ];
 
 pub fn render_room(state: &mut State) {
+    let render_frame = state.update_frame / ANIMATION_DELAY;
+    let new_frame = state.render_frame != render_frame;
+    state.render_frame = render_frame;
+
     if !state.segments.is_empty() {
         draw_progress_bar(state);
         return;
@@ -37,7 +41,8 @@ pub fn render_room(state: &mut State) {
         draw_end(state);
         return;
     }
-    if should_render_room(state) {
+    let render_room = !state.script_state.end && (new_frame | state.room_dirty);
+    if render_room {
         state.room_dirty = false;
         clear_room(state);
         set_palette(state);
@@ -47,18 +52,6 @@ pub fn render_room(state: &mut State) {
         draw_avatar(state);
     }
     draw_dialog(state);
-}
-
-/// Check if the room should be re-drawn on this frame.
-fn should_render_room(state: &State) -> bool {
-    if state.script_state.end {
-        return false;
-    }
-    let animation_frame = state.frame.is_multiple_of(ANIMATION_DELAY);
-    if animation_frame {
-        return true;
-    }
-    state.room_dirty
 }
 
 fn draw_progress_bar(state: &State) {
@@ -128,7 +121,7 @@ fn convert_color(c: &bitsy_file::Colour) -> ff::RGB {
 
 fn draw_tiles(state: &State) {
     for (i, images) in &state.tiles {
-        let image = pick_raw_frame(images, state.frame);
+        let image = pick_raw_frame(images, state.render_frame);
         let image = unsafe { ff::Image::from_bytes(image) };
         let x = i % TILES_X;
         let y = i / TILES_Y;
@@ -154,7 +147,7 @@ fn draw_items(state: &State) {
         let Some(item) = state.game.items.iter().find(|item| &item.id == id) else {
             continue;
         };
-        let frame = pick_frame(&item.animation_frames, state.frame);
+        let frame = pick_frame(&item.animation_frames, state.render_frame);
         let primary = match item.colour_id {
             Some(c) => c as u8,
             None => 2,
@@ -176,7 +169,7 @@ fn draw_sprites(state: &State) {
             continue;
         };
         if room_id == &room.id {
-            draw_sprite(sprite, state.frame);
+            draw_sprite(sprite, state.render_frame);
         }
     }
 }
@@ -184,7 +177,7 @@ fn draw_sprites(state: &State) {
 fn draw_avatar(state: &State) {
     for sprite in &state.game.sprites {
         if sprite.id == state.script_state.avatar {
-            draw_sprite(sprite, state.frame);
+            draw_sprite(sprite, state.render_frame);
             return;
         }
     }
@@ -213,7 +206,7 @@ fn draw_dialog(state: &mut State) {
         return;
     };
     // Slow down word rendering.
-    if !page.fast && !state.frame.is_multiple_of(3) {
+    if !page.fast && !state.update_frame.is_multiple_of(3) {
         return;
     }
 
@@ -230,7 +223,7 @@ fn draw_dialog(state: &mut State) {
     }
 
     // Cycle the RGB representation of the color representing the rainbow text.
-    let idx = usize::from((state.frame) / 6) % RAINBOW_COLORS.len();
+    let idx = usize::from(state.update_frame / 6) % RAINBOW_COLORS.len();
     let rainbow_color = RAINBOW_COLORS[idx];
     ff::set_color(COLOR_RAINBOW, rainbow_color);
 
@@ -241,7 +234,7 @@ fn draw_dialog(state: &mut State) {
         match &word.word {
             Text(text, effect) => {
                 use bitsy_script::TextEffect::*;
-                let apply_effect = state.frame.is_multiple_of(3);
+                let apply_effect = state.update_frame.is_multiple_of(3);
                 let stable = matches!(effect, None | Color(_));
                 if word.rendered && (!apply_effect || stable) {
                     continue;
@@ -285,7 +278,7 @@ fn draw_dialog(state: &mut State) {
                     for i in 0..text.len() {
                         let sub = &text[i..=i];
                         let shift_x = (i * usize::from(font.char_width())) as i32;
-                        let shift_y = ((state.frame / ANIMATION_DELAY + i as u16) % 2) as i32;
+                        let shift_y = ((state.render_frame + i as u16) % 2) as i32;
                         let point = word_point + ff::Point::new(shift_x, shift_y);
                         ff::draw_text(sub, &font, point, color);
                     }
@@ -356,12 +349,12 @@ fn tile_point(x: u8, y: u8) -> ff::Point {
 }
 
 fn pick_frame(frames: &[bitsy_file::Image], frame: u16) -> &bitsy_file::Image {
-    let frame = usize::from(frame / ANIMATION_DELAY);
+    let frame = usize::from(frame);
     &frames[frame % frames.len()]
 }
 
 fn pick_raw_frame(frames: &[Image], frame: u16) -> &Image {
-    let frame = usize::from(frame / ANIMATION_DELAY);
+    let frame = usize::from(frame);
     &frames[frame % frames.len()]
 }
 

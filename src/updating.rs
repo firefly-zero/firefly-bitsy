@@ -9,9 +9,9 @@ const TILES_X: u8 = 16;
 const TILES_Y: u8 = 16;
 
 pub fn update_state(state: &mut State) {
-    state.frame = state.frame.wrapping_add(1);
+    state.update_frame = state.update_frame.wrapping_add(1);
     if !state.segments.is_empty() {
-        if state.frame != 1 {
+        if state.update_frame != 1 {
             load_segments(state);
         }
         if state.segments.is_empty() {

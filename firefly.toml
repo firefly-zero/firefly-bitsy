@@ -4,5 +4,5 @@ author_name = "Demo"
 app_name = "Firefly Bitsy"
 
 [files]
-main = { path = "main.bitsy.txt", copy = true, url = "https://raw.githubusercontent.com/Ragzouken/bitsy-archive/refs/heads/main/1F6683A4.bitsy.txt" }
+main = { path = "main.bitsy.txt", copy = true, url = "https://raw.githubusercontent.com/Ragzouken/bitsy-archive/refs/heads/main/CBF9A0C0.bitsy.txt" }
 font = { path = "eg_6x9.fff", url = "https://fonts.fireflyzero.com/fonts/ascii/eg_6x9.fff" }

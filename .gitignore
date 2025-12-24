@@ -1,3 +1,4 @@
 /target
 /*.fff
 /main.bitsy.txt
+/main.wasm

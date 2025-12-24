@@ -62,7 +62,7 @@ fn should_render_room(state: &State) -> bool {
 }
 
 fn draw_progress_bar(state: &State) {
-    const TEXT: &str = "LOADING...";
+    const TEXT: &str = "LOADING SCRIPT...";
     ff::clear_screen(ff::Color::Black);
     let font = state.font.as_font();
     let x = (ff::WIDTH - i32::from(font.char_width()) * TEXT.len() as i32) / 2;
@@ -96,16 +96,34 @@ fn set_palette(state: &State) {
     let palette = state.game.get_palette(palette).unwrap();
     for (color, idx) in palette.colours.iter().zip(1_usize..) {
         let idx = ff::Color::from(idx as u8);
-        let rgb = ff::RGB {
-            r: color.red,
-            g: color.green,
-            b: color.blue,
-        };
+        let rgb = convert_color(color);
         ff::set_color(idx, rgb);
     }
 
+    // If the base palette colors are contrast enough,
+    // use them for the dialog box as well.
+    // It's usually true but some games can play around with palette.
+    // For example, to have "hidden" tiles in a room.
+    if palette.colours.len() >= 2 {
+        let bg = convert_color(&palette.colours[0]);
+        let fg = convert_color(&palette.colours[1]);
+        if is_contrast(bg, fg) {
+            ff::set_color(COLOR_DIALOG_BOX, bg);
+            ff::set_color(COLOR_DIALOG_TEXT, fg);
+            return;
+        }
+    };
+
     ff::set_color(COLOR_DIALOG_BOX, RGB::new(0x21, 0x1e, 0x20));
     ff::set_color(COLOR_DIALOG_TEXT, RGB::new(0xe9, 0xef, 0xec));
+}
+
+fn convert_color(c: &bitsy_file::Colour) -> ff::RGB {
+    ff::RGB {
+        r: c.red,
+        g: c.green,
+        b: c.blue,
+    }
 }
 
 fn draw_tiles(state: &State) {
@@ -263,6 +281,7 @@ fn draw_dialog(state: &mut State) {
                 }
 
                 if wave {
+                    // Draw the wavy word letter-by-letter.
                     for i in 0..text.len() {
                         let sub = &text[i..=i];
                         let shift_x = (i * usize::from(font.char_width())) as i32;
@@ -344,4 +363,43 @@ fn pick_frame(frames: &[bitsy_file::Image], frame: u16) -> &bitsy_file::Image {
 fn pick_raw_frame(frames: &[Image], frame: u16) -> &Image {
     let frame = usize::from(frame / ANIMATION_DELAY);
     &frames[frame % frames.len()]
+}
+
+/// Check if the given colors have a high contrast ratio.
+fn is_contrast(c1: ff::RGB, c2: ff::RGB) -> bool {
+    let l1 = luminance(c1);
+    let l2 = luminance(c2);
+    // https://www.accessibility-developer-guide.com/knowledge/colours-and-contrast/how-to-calculate/
+    let mut contrast = (l1 + 0.05) / (l2 + 0.05);
+    if contrast < 1.0 {
+        contrast = 1.0 / contrast;
+    }
+    // The contrast values lie on the range from 1 to 21
+    // where 1 is the same color and 21 is #FFF and #000.
+    //
+    // I've picked 10 as the threshold by playing with online contrast calculators
+    // and picking the minimum that still looks good. But 7 would also be ok.
+    contrast >= 10.0
+}
+
+fn luminance(c: ff::RGB) -> f32 {
+    // https://www.w3.org/TR/WCAG20/#relativeluminancedef
+    let r = srgb_linear(c.r);
+    let g = srgb_linear(c.g);
+    let b = srgb_linear(c.b);
+    (r * 0.2126) + (g * 0.7152) + (b * 0.0722)
+}
+
+fn srgb_linear(v: u8) -> f32 {
+    // https://www.w3.org/TR/WCAG20/#relativeluminancedef
+    let v: f32 = f32::from(v) / 255.;
+    if v <= 0.04045 {
+        v / 12.92
+    } else {
+        let x = (v + 0.055) / 1.055;
+        // The original formula uses x^2.4 (powf) but we don't have `powf`.
+        // on no-std environment. So here's a close approximation.
+        // I've made a plot for the range and it good enough.
+        1.28 * x * x - 0.28 * x
+    }
 }

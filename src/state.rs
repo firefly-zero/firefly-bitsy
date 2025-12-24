@@ -16,6 +16,7 @@ pub struct State {
     pub room: usize,
     pub update_frame: u16,
     pub render_frame: u16,
+    pub dialog_frame: u16,
     pub room_dirty: bool,
     pub held_for: u32,
     /// Input on the previous frame.
@@ -108,6 +109,7 @@ pub fn load_state() {
         room: 0,
         update_frame: 0,
         render_frame: 0,
+        dialog_frame: 0,
         held_for: 0,
         room_dirty: true,
         dpad: ff::DPad::default(),

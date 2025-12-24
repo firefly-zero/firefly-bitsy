@@ -7,7 +7,10 @@ const TILES_X: u8 = 16;
 const TILES_Y: u8 = 16;
 const OFFSET_X: i32 = (ff::WIDTH - 8 * 16) / 2;
 const OFFSET_Y: i32 = 0;
+/// Controls how fast, relative to the `update` speed, the room and word animations play.
 const ANIMATION_DELAY: u16 = 25;
+/// Control how fast, relative to the `update` speed, the new dialog words are printed.
+const DIALOG_DELAY: u16 = 3;
 
 const COLOR_BG: ff::Color = ff::Color::new(1);
 const COLOR_RAINBOW: ff::Color = ff::Color::LightGreen;
@@ -201,12 +204,16 @@ fn draw_sprite(sprite: &bitsy_file::Sprite, frame: u16) {
 fn draw_dialog(state: &mut State) {
     const MARGIN_X: i32 = 2;
 
+    let dialog_frame = state.update_frame / DIALOG_DELAY;
+    let new_frame = state.dialog_frame != dialog_frame;
+    state.dialog_frame = dialog_frame;
+
     let center = state.dialog.center;
     let Some(page) = state.dialog.current_page() else {
         return;
     };
     // Slow down word rendering.
-    if !page.fast && !state.update_frame.is_multiple_of(3) {
+    if !page.fast && !new_frame {
         return;
     }
 
@@ -223,7 +230,7 @@ fn draw_dialog(state: &mut State) {
     }
 
     // Cycle the RGB representation of the color representing the rainbow text.
-    let idx = usize::from(state.update_frame / 6) % RAINBOW_COLORS.len();
+    let idx = usize::from(state.render_frame) % RAINBOW_COLORS.len();
     let rainbow_color = RAINBOW_COLORS[idx];
     ff::set_color(COLOR_RAINBOW, rainbow_color);
 
@@ -234,9 +241,8 @@ fn draw_dialog(state: &mut State) {
         match &word.word {
             Text(text, effect) => {
                 use bitsy_script::TextEffect::*;
-                let apply_effect = state.update_frame.is_multiple_of(3);
                 let stable = matches!(effect, None | Color(_));
-                if word.rendered && (!apply_effect || stable) {
+                if word.rendered && (stable || !new_frame) {
                     continue;
                 }
                 let mut word_point = point + word.point;
@@ -262,7 +268,7 @@ fn draw_dialog(state: &mut State) {
                         None => {}
                         Wavy => wave = true,
                         Shaky => {
-                            let rand = ff::get_random();
+                            let rand = randomize(state.render_frame);
                             let shift_x = rand % 2 - 1;
                             let shift_y = (rand >> 8) % 2 - 1;
                             word_point.x += shift_x as i32;
@@ -395,4 +401,12 @@ fn srgb_linear(v: u8) -> f32 {
         // I've made a plot for the range and it good enough.
         1.28 * x * x - 0.28 * x
     }
+}
+
+pub(crate) fn randomize(x: u16) -> u32 {
+    let mut x = u32::from(x);
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    x
 }

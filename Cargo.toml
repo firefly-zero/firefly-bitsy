@@ -1,10 +1,10 @@
 [package]
 name = "firefly-bitsy"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 [dependencies]
-bitsy-file = "0.712.0"
+bitsy-file = "0.712.1"
 firefly-rust = { version = "0.10.0", features = ["alloc", "talc"] }
 bitsy-script = "0.2.1"
 

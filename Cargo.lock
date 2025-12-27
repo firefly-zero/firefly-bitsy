@@ -10,9 +10,9 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "bitsy-file"
-version = "0.712.0"
+version = "0.712.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e680ba9d5fec394636e58987f75d22c33f98618d6d0e2c85b4fc4e64257df585"
+checksum = "30232d28314c40fd368df90e801a11f8fee1125ca3daf45e56a8fd817893431c"
 
 [[package]]
 name = "bitsy-script"
@@ -31,7 +31,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "firefly-bitsy"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bitsy-file",
  "bitsy-script",

@@ -1,7 +1,7 @@
 use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;
-use firefly_rust::{self as ff, RGB};
+use firefly_rust as ff;
 
 const TILES_X: u8 = 16;
 const TILES_Y: u8 = 16;
@@ -110,8 +110,8 @@ fn set_palette(state: &State) {
         }
     };
 
-    ff::set_color(COLOR_DIALOG_BOX, RGB::new(0x21, 0x1e, 0x20));
-    ff::set_color(COLOR_DIALOG_TEXT, RGB::new(0xe9, 0xef, 0xec));
+    ff::set_color(COLOR_DIALOG_BOX, ff::RGB::new(0x21, 0x1e, 0x20));
+    ff::set_color(COLOR_DIALOG_TEXT, ff::RGB::new(0xe9, 0xef, 0xec));
 }
 
 fn convert_color(c: &bitsy_file::Colour) -> ff::RGB {

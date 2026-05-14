@@ -325,20 +325,15 @@ pub fn parse_image(image: &bitsy_file::Image, primary: u8) -> Vec<u8> {
     let width = if is_hd { 16 } else { 8 };
     let height = width;
 
-    const HEADER_SIZE: usize = 5 + 8;
+    const HEADER_SIZE: usize = 4;
     let body_size = width * height / 2;
     let mut raw = vec![0; HEADER_SIZE + body_size as usize];
 
     // Header.
-    raw[0] = 0x21; // magic number
-    raw[1] = 4; // BPP
-    raw[2] = width as u8; // width
-    raw[3] = (width >> 8) as u8; // width
-    raw[4] = 255; // transparency
-    // color swaps
-    for i in 0u8..8u8 {
-        raw[5 + i as usize] = ((i * 2) << 4) | (i * 2 + 1);
-    }
+    raw[0] = 0x22; // magic number
+    raw[1] = width as u8; // width
+    raw[2] = (width >> 8) as u8; // width
+    raw[3] = 255; // transparency
     for i in 0..image.pixels.len() / 2 {
         let p1 = image.pixels[i * 2] * primary;
         let p2 = image.pixels[i * 2 + 1] * primary;

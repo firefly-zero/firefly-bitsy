@@ -253,7 +253,7 @@ fn draw_dialog(state: &mut State) {
                 // hide the old word first.
                 let moving = matches!(effect, Wavy | Shaky);
                 if moving {
-                    let width = font.line_width(text) as i32;
+                    let width = font.line_width_ascii(text) as i32;
                     let height = i32::from(font.char_height());
                     ff::draw_rect(
                         ff::Point::new(word_point.x, word_point.y - 6),

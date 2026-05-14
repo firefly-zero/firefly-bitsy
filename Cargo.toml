@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 bitsy-file = "0.712.1"
-firefly-rust = { version = "0.10.0", features = ["alloc", "talc"] }
+firefly-rust = { version = "0.13.2", features = ["alloc", "talc"] }
 bitsy-script = "0.2.1"
 
 # https://github.com/johnthagen/min-sized-rust

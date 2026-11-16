@@ -20,6 +20,7 @@ pub fn update_state(state: &mut State) {
         return;
     }
     handle_pad(state);
+    handle_buttons(state);
     get_avatar(state).position = Some(state.pos());
 }
 
@@ -69,8 +70,24 @@ fn set_starting_room(state: &mut State) {
     state.set_room(room_id.clone());
 }
 
+/// If any button is pressed, advance the active dialog.
+fn handle_buttons(state: &mut State) {
+    let btns = ff::read_buttons(ff::Peer::COMBINED);
+    let mut old_btns = state.buttons;
+    if state.held_for > 14 && state.held_for.is_multiple_of(4) {
+        old_btns = ff::Buttons::default();
+    }
+    let pressed = btns.just_pressed(&old_btns);
+    if state.dialog.n_pages() != 0 && pressed.any() {
+        state.dialog.next_page();
+    }
+    state.buttons = btns;
+}
+
+/// If touchpad is touched, move in that direction.
 fn handle_pad(state: &mut State) {
-    let dpad = read_dpad();
+    let pad = ff::read_pad(ff::Peer::COMBINED).unwrap_or_default();
+    let dpad = pad.as_dpad4();
     if dpad.any() {
         state.held_for += 1;
     } else {
@@ -83,17 +100,9 @@ fn handle_pad(state: &mut State) {
     let pressed = dpad.just_pressed(old_dpad);
     state.dpad = dpad;
 
-    if state.dialog.n_pages() != 0 {
-        if pressed.any() {
-            state.dialog.next_page();
-        }
+    if state.script_state.end || state.dialog.n_pages() != 0 {
         return;
     }
-
-    if state.script_state.end {
-        return;
-    }
-
     match pressed {
         ff::DPad4::Left => move_avatar_to(state, -1, 0),
         ff::DPad4::Right => move_avatar_to(state, 1, 0),
@@ -103,27 +112,7 @@ fn handle_pad(state: &mut State) {
     }
 }
 
-fn read_dpad() -> ff::DPad4 {
-    let dpad = match ff::read_pad(ff::Peer::COMBINED) {
-        Some(pad) => pad.as_dpad4(),
-        None => ff::DPad4::default(),
-    };
-    let buttons = ff::read_buttons(ff::Peer::COMBINED);
-    if buttons.s {
-        return ff::DPad4::Down;
-    }
-    if buttons.e {
-        return ff::DPad4::Right;
-    }
-    if buttons.w {
-        return ff::DPad4::Left;
-    }
-    if buttons.n {
-        return ff::DPad4::Up;
-    }
-    dpad
-}
-
+/// Change the avatar position, accounting for obstacles and interactive elements.
 fn move_avatar_to(state: &mut State, dx: i8, dy: i8) {
     let old_pos = state.pos();
     let x = old_pos.x.saturating_add_signed(dx).min(TILES_X - 1);

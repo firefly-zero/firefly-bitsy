@@ -21,6 +21,7 @@ pub struct State {
     pub held_for: u32,
     /// Input on the previous frame.
     pub dpad: ff::DPad4,
+    pub buttons: ff::Buttons,
     /// Currently active dialog.
     pub dialog: Dialog,
     pub script_state: bitsy_script::State,
@@ -114,6 +115,7 @@ pub fn load_state() {
         held_for: 0,
         room_dirty: true,
         dpad: ff::DPad4::default(),
+        buttons: ff::Buttons::default(),
         dialog: Dialog::default(),
         tiles: Vec::new(),
         script_state: bitsy_script::State::default(),

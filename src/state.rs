@@ -26,7 +26,7 @@ pub struct State {
     pub script_state: bitsy_script::State,
     /// Tiles in the current room.
     pub tiles: Vec<(u8, Images)>,
-    pub font: ff::FileBuf,
+    pub font: ff::FontBuf,
 }
 
 impl State {
@@ -95,7 +95,8 @@ pub fn get_state() -> &'static mut State {
 
 pub fn load_state() {
     let raw = ff::load_file_buf("main").unwrap();
-    let raw = alloc::str::from_utf8(raw.data()).unwrap();
+    let raw = raw.into_bytes();
+    let raw = alloc::str::from_utf8(&raw).unwrap();
     let segments = bitsy_file::Segments::new(raw);
     let n_segments = segments.len();
     let Some(font) = ff::load_file_buf("font") else {
@@ -105,7 +106,7 @@ pub fn load_state() {
         game: bitsy_file::Game::default(),
         segments,
         n_segments,
-        font,
+        font: font.into_font(),
         room: 0,
         update_frame: 0,
         render_frame: 0,

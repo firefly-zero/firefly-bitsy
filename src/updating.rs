@@ -1,7 +1,7 @@
 use crate::*;
 use alloc::string::ToString;
 use bitsy_file as bs;
-use firefly_rust as ff;
+use firefly_rust::{self as ff, Font};
 
 /// The number of tiles in a row.
 const TILES_X: u8 = 16;
@@ -42,7 +42,7 @@ fn init_game(state: &mut State) {
         state.script_state.vars.set(var.id.to_string(), val);
     }
 
-    let font = state.font.as_font();
+    let font = &state.font;
     let char_width = font.char_width();
     let char_height = font.char_height();
     state.dialog = Dialog::new(
@@ -226,7 +226,7 @@ fn show_dialog_text(state: &mut State, dialog: &str) {
     if dialog.trim().is_empty() {
         return;
     }
-    let font = state.font.as_font();
+    let font = &state.font;
     let char_width = font.char_width();
     let char_height = font.char_height();
     let lines = Dialog::new(dialog, &mut state.script_state, char_width, char_height);

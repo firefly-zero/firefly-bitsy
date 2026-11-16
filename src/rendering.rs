@@ -1,7 +1,7 @@
 use crate::*;
 use alloc::vec;
 use alloc::vec::Vec;
-use firefly_rust as ff;
+use firefly_rust::{self as ff, Font};
 
 const TILES_X: u8 = 16;
 const TILES_Y: u8 = 16;
@@ -60,27 +60,27 @@ pub fn render_room(state: &mut State) {
 fn draw_progress_bar(state: &State) {
     const TEXT: &str = "LOADING SCRIPT...";
     ff::clear_screen(ff::Color::Black);
-    let font = state.font.as_font();
+    let font = &state.font;
     let x = (ff::WIDTH - i32::from(font.char_width()) * TEXT.len() as i32) / 2;
     let y = (ff::HEIGHT + i32::from(font.char_height())) / 2;
     let point = ff::Point::new(x, y);
-    ff::draw_text(TEXT, &font, point, ff::Color::Gray);
+    ff::draw_text(TEXT, font, point, ff::Color::Gray);
 
     if state.n_segments != 0 {
         let segments_left = state.n_segments - state.segments.len();
         let progress = TEXT.len() * segments_left / state.n_segments;
-        ff::draw_text(&TEXT[..progress], &font, point, ff::Color::White);
+        ff::draw_text(&TEXT[..progress], font, point, ff::Color::White);
     }
 }
 
 /// Render "THE END" screen.
 fn draw_end(state: &State) {
     ff::clear_screen(COLOR_DIALOG_BOX);
-    let font = state.font.as_font();
+    let font = &state.font;
     let x = (ff::WIDTH - i32::from(font.char_width()) * 7) / 2;
     let y = (ff::HEIGHT + i32::from(font.char_height())) / 2;
     let point = ff::Point::new(x, y);
-    ff::draw_text("THE END", &font, point, COLOR_DIALOG_TEXT);
+    ff::draw_text("THE END", font, point, COLOR_DIALOG_TEXT);
 }
 
 fn set_palette(state: &State) {
@@ -125,7 +125,7 @@ fn convert_color(c: &bitsy_file::Colour) -> ff::RGB {
 fn draw_tiles(state: &State) {
     for (i, images) in &state.tiles {
         let image = pick_raw_frame(images, state.render_frame);
-        let image = unsafe { ff::Image::from_bytes(image) };
+        let image = unsafe { ff::FileRef::from_bytes(image).into_image() };
         let x = i % TILES_X;
         let y = i / TILES_Y;
         let point = tile_point(x, y);
@@ -156,7 +156,7 @@ fn draw_items(state: &State) {
             None => 2,
         };
         let image = parse_image(frame, primary);
-        let image = unsafe { ff::Image::from_bytes(&image) };
+        let image = unsafe { ff::FileRef::from_bytes(&image).into_image() };
         let point = tile_point(pos.x, pos.y);
         ff::draw_image(&image, point);
     }
@@ -196,7 +196,7 @@ fn draw_sprite(sprite: &bitsy_file::Sprite, frame: u16) {
         None => 2,
     };
     let image = parse_image(frame, primary);
-    let image = unsafe { ff::Image::from_bytes(&image) };
+    let image = unsafe { ff::FileRef::from_bytes(&image).into_image() };
     let point = tile_point(pos.x, pos.y);
     ff::draw_image(&image, point);
 }
@@ -234,7 +234,7 @@ fn draw_dialog(state: &mut State) {
     let rainbow_color = RAINBOW_COLORS[idx];
     ff::set_color(COLOR_RAINBOW, rainbow_color);
 
-    let font = state.font.as_font();
+    let font = &state.font;
     let point = ff::Point::new(point.x + MARGIN_X, point.y + 10);
     for word in &mut page.words {
         use bitsy_script::Word::*;
@@ -286,10 +286,10 @@ fn draw_dialog(state: &mut State) {
                         let shift_x = (i * usize::from(font.char_width())) as i32;
                         let shift_y = ((state.render_frame + i as u16) % 2) as i32;
                         let point = word_point + ff::Point::new(shift_x, shift_y);
-                        ff::draw_text(sub, &font, point, color);
+                        ff::draw_text(sub, font, point, color);
                     }
                 } else {
-                    ff::draw_text(text, &font, word_point, color);
+                    ff::draw_text(text, font, word_point, color);
                 }
 
                 let was_rendered = word.rendered;
